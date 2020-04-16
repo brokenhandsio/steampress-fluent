@@ -1,115 +1,96 @@
 import Fluent
 import SteamPress
+import Vapor
 
-struct FluentPostRepository: BlogPostRepository, Service {
+struct FluentPostRepository: BlogPostRepository {
     
-    func getAllPostsSortedByPublishDate(includeDrafts: Bool, on container: Container) -> EventLoopFuture<[BlogPost]> {
-        container.withPooledConnection(to: .psql) { connection in
-            let query = BlogPost.query(on: connection).sort(\.created, .descending)
-            if !includeDrafts {
-                query.filter(\.published == true)
-            }
-            return query.all()
-        }
+    let database: Database
+    
+    func `for`(_ request: Request) -> BlogPostRepository {
+        return FluentPostRepository(database: request.db)
     }
     
-    func getAllPostsSortedByPublishDate(includeDrafts: Bool, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        container.withPooledConnection(to: .psql) { connection in
-            let query = BlogPost.query(on: connection).sort(\.created, .descending)
-            if !includeDrafts {
-                query.filter(\.published == true)
-            }
-            let upperLimit = count + offset
-            return query.range(offset..<upperLimit).all()
+    func getAllPostsSortedByPublishDate(includeDrafts: Bool) -> EventLoopFuture<[BlogPost]> {
+        let query = BlogPost.query(on: database).sort(\.created, .descending)
+        if !includeDrafts {
+            query.filter(\.published == true)
         }
+        return query.all()
     }
     
-    func getAllPostsCount(includeDrafts: Bool, on container: Container) -> EventLoopFuture<Int> {
-        container.withPooledConnection(to: .psql) { connection in
-            let query = BlogPost.query(on: connection)
-            if !includeDrafts {
-                query.filter(\.published == true)
-            }
-            return query.count()
+    func getAllPostsSortedByPublishDate(includeDrafts: Bool, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
+        let query = BlogPost.query(on: database).sort(\.created, .descending)
+        if !includeDrafts {
+            query.filter(\.published == true)
         }
+        let upperLimit = count + offset
+        return query.range(offset..<upperLimit).all()
     }
     
-    func getAllPostsSortedByPublishDate(for user: BlogUser, includeDrafts: Bool, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        container.withPooledConnection(to: .psql) { connection in
-            let query = try user.posts.query(on: connection).sort(\.created, .descending)
-            if !includeDrafts {
-                query.filter(\.published == true)
-            }
-            let upperLimit = count + offset
-            return query.range(offset..<upperLimit).all()
+    func getAllPostsCount(includeDrafts: Bool) -> EventLoopFuture<Int> {
+        let query = BlogPost.query(on: database)
+        if !includeDrafts {
+            query.filter(\.published == true)
         }
+        return query.count()
     }
     
-    func getPostCount(for user: BlogUser, on container: Container) -> EventLoopFuture<Int> {
-        container.withPooledConnection(to: .psql) { connection in
-            try user.posts.query(on: connection).filter(\.published == true).count()
+    func getAllPostsSortedByPublishDate(for user: BlogUser, includeDrafts: Bool, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
+        let query = try user.posts.query(on: database).sort(\.created, .descending)
+        if !includeDrafts {
+            query.filter(\.published == true)
         }
+        let upperLimit = count + offset
+        return query.range(offset..<upperLimit).all()
     }
     
-    func getPost(slug: String, on container: Container) -> EventLoopFuture<BlogPost?> {
-        container.withPooledConnection(to: .psql) { connection in
-            BlogPost.query(on: connection).filter(\.slugUrl == slug).first()
-        }
+    func getPostCount(for user: BlogUser) -> EventLoopFuture<Int> {
+        try user.posts.query(on: database).filter(\.published == true).count()
     }
     
-    func getPost(id: Int, on container: Container) -> EventLoopFuture<BlogPost?> {
-        container.withPooledConnection(to: .psql) { connection in
-            BlogPost.query(on: connection).filter(\.blogID == id).first()
-        }
+    func getPost(slug: String) -> EventLoopFuture<BlogPost?> {
+        BlogPost.query(on: database).filter(\.slugUrl == slug).first()
     }
     
-    func getSortedPublishedPosts(for tag: BlogTag, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        container.withPooledConnection(to: .psql) { connection in
-            let query = try tag.posts.query(on: connection).filter(\.published == true).sort(\.created, .descending)
-            let upperLimit = count + offset
-            return query.range(offset..<upperLimit).all()
-        }
+    func getPost(id: Int) -> EventLoopFuture<BlogPost?> {
+        BlogPost.query(on: database).filter(\.blogID == id).first()
     }
     
-    func getPublishedPostCount(for tag: BlogTag, on container: Container) -> EventLoopFuture<Int> {
-        container.withPooledConnection(to: .psql) { connection in
-            return try tag.posts.query(on: connection).filter(\.published == true).count()
-        }
+    func getSortedPublishedPosts(for tag: BlogTag, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
+        let query = try tag.posts.query(on: database).filter(\.published == true).sort(\.created, .descending)
+        let upperLimit = count + offset
+        return query.range(offset..<upperLimit).all()
     }
     
-    func findPublishedPostsOrdered(for searchTerm: String, on container: Container, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        container.withPooledConnection(to: .psql) { connection in
-            let query = BlogPost.query(on: connection).sort(\.created, .descending).filter(\.published == true)
-            
-            let upperLimit = count + offset
-            let paginatedQuery = query.range(offset..<upperLimit)
-                
-            return paginatedQuery.group(.or) { or in
-                or.filter(\.title, .ilike, "%\(searchTerm)%")
-                or.filter(\.contents, .ilike, "%\(searchTerm)%")
-            }.all()
-        }
+    func getPublishedPostCount(for tag: BlogTag) -> EventLoopFuture<Int> {
+        return try tag.posts.query(on: database).filter(\.published == true).count()
     }
     
-    func getPublishedPostCount(for searchTerm: String, on container: Container) -> EventLoopFuture<Int> {
-        container.withPooledConnection(to: .psql) { connection in
-            BlogPost.query(on: connection).filter(\.published == true).group(.or) { or in
-                or.filter(\.title, .ilike, "%\(searchTerm)%")
-                or.filter(\.contents, .ilike, "%\(searchTerm)%")
-            }.count()
-        }
+    func findPublishedPostsOrdered(for searchTerm: String, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
+        let query = BlogPost.query(on: database).sort(\.created, .descending).filter(\.published == true)
+        
+        let upperLimit = count + offset
+        let paginatedQuery = query.range(offset..<upperLimit)
+        
+        return paginatedQuery.group(.or) { or in
+            or.filter(\.title, .ilike, "%\(searchTerm)%")
+            or.filter(\.contents, .ilike, "%\(searchTerm)%")
+        }.all()
     }
     
-    func save(_ post: BlogPost, on container: Container) -> EventLoopFuture<BlogPost> {
-        container.withPooledConnection(to: .psql) { connection in
-            post.save(on: connection)
-        }
+    func getPublishedPostCount(for searchTerm: String) -> EventLoopFuture<Int> {
+        BlogPost.query(on: database).filter(\.published == true).group(.or) { or in
+            or.filter(\.title, .ilike, "%\(searchTerm)%")
+            or.filter(\.contents, .ilike, "%\(searchTerm)%")
+        }.count()
     }
     
-    func delete(_ post: BlogPost, on container: Container) -> EventLoopFuture<Void> {
-        container.withPooledConnection(to: .psql) { connection in
-            post.delete(on: connection)
-        }
+    func save(_ post: BlogPost) -> EventLoopFuture<BlogPost> {
+        post.save(on: database)
+    }
+    
+    func delete(_ post: BlogPost) -> EventLoopFuture<Void> {
+        post.delete(on: database)
     }
     
 }
