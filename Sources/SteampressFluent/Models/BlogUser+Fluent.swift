@@ -2,7 +2,7 @@ import SteamPress
 import Fluent
 
 //extension BlogUser: Migration {
-//    public static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
+//    static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
 //        Database.create(BlogUser.self, on: connection) { builder in
 //            builder.field(for: \.userID, isIdentifier: true)
 //            builder.field(for: \.name)
@@ -24,40 +24,40 @@ import Fluent
 //    }
 //}
 
-public final class FluentBlogUser: Model {    
+final class FluentBlogUser: Model {
     
-    public typealias IDValue = Int
-    public static let schema = "BlogUser"
+    typealias IDValue = Int
+    static let schema = "BlogUser"
     
     @ID(custom: "userID")
-    public var id: Int?
+    var id: Int?
     
     @Field(key: "name")
-    public var name: String
+    var name: String
     
     @Field(key: "username")
-    public var username: String
+    var username: String
     
     @Field(key: "password")
-    public var password: String
+    var password: String
     
     @Field(key: "resetPasswordRequired")
-    public var resetPasswordRequired: Bool
+    var resetPasswordRequired: Bool
     
     @Field(key: "profilePicture")
-    public var profilePicture: String?
+    var profilePicture: String?
     
     @Field(key: "twitterHandle")
-    public var twitterHandle: String?
+    var twitterHandle: String?
     
     @Field(key: "biography")
-    public var biography: String?
+    var biography: String?
     
     @Field(key: "tagline")
-    public var tagline: String?
+    var tagline: String?
     
-    public init() {}
-    public init(userID: Int?, name: String, username: String, password: String, profilePicture: String?, twitterHandle: String?, biography: String?, tagline: String?) {
+    init() {}
+    init(userID: Int?, name: String, username: String, password: String, profilePicture: String?, twitterHandle: String?, biography: String?, tagline: String?) {
         self.id = userID
         self.name = name
         self.username = username.lowercased()
