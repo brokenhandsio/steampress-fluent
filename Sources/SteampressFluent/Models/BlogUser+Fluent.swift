@@ -1,12 +1,6 @@
 import SteamPress
 import Fluent
 
-//extension BlogUser: Model {
-//    public typealias ID = Int
-//    public typealias Database = PostgreSQLDatabase
-//    public static var idKey: IDKey { return \.userID }
-//}
-//
 //extension BlogUser: Migration {
 //    public static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
 //        Database.create(BlogUser.self, on: connection) { builder in
