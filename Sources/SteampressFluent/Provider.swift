@@ -39,7 +39,7 @@ public struct SteamPressFluentPostgresProvider: Vapor.Provider {
     public func register(_ services: inout Services) throws {
         let provider = SteamPress.Provider(blogPath: blogPath, feedInformation: feedInformation, postsPerPage: postsPerPage, enableAuthorPages: enableAuthorPages, enableTagPages: enableTagPages)
         services.register(FluentPostgresTagRepository(), as: BlogTagRepository.self)
-        services.register(FluentPostgresUserRepository(), as: BlogUserRepository.self)
+        services.register(FluentUserRepository(), as: BlogUserRepository.self)
         services.register(FluentPostgresPostRepository(), as: BlogPostRepository.self)
         try services.register(provider)
     }

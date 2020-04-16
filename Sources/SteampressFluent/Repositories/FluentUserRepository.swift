@@ -2,21 +2,21 @@ import Fluent
 import SteamPress
 import Vapor
 
-struct FluentPostgresUserRepository: BlogUserRepository {
+struct FluentUserRepository: BlogUserRepository {
     
     let database: Database
     
     func `for`(_ request: Request) -> BlogUserRepository {
-        return FluentPostgresUserRepository(database: request.db)
+        return FluentUserRepository(database: request.db)
     }
     
     func getAllUsers() -> EventLoopFuture<[BlogUser]> {
-        BlogUser.query(on: database).all()
+        FluentBlogUser.query(on: database).all().map { $0.map { $0.toBlogUser() }}
     }
     
     func getAllUsersWithPostCount() -> EventLoopFuture<[(BlogUser, Int)]> {
-        let allUsersQuery = BlogUser.query(on: database).all()
-        let allPostsQuery = BlogPost.query(on: database).filter(\.$published == true).all()
+        let allUsersQuery = FluentBlogUser.query(on: database).all()
+        let allPostsQuery = FluentBlogPost.query(on: database).filter(\.$published == true).all()
         return allUsersQuery.and(allPostsQuery).map { users, posts in
             let postsByUserID = [Int: [BlogPost]](grouping: posts, by: { $0[keyPath: \.author] })
             return users.map { user in
@@ -30,27 +30,29 @@ struct FluentPostgresUserRepository: BlogUserRepository {
     }
     
     func getUser(id: Int) -> EventLoopFuture<BlogUser?> {
-        return BlogUser.query(on: database).filter(\.$userID == id).first()
+        return FluentBlogUser.query(on: database).filter(\.$id == id).first().map { $0?.toBlogUser() }
     }
     
     func getUser(name: String) -> EventLoopFuture<BlogUser?> {
-        BlogUser.query(on: database).filter(\.$name == name).first()
+        FluentBlogUser.query(on: database).filter(\.$name == name).first().map { $0?.toBlogUser() }
     }
     
     func getUser(username: String) -> EventLoopFuture<BlogUser?> {
-        BlogUser.query(on: database).filter(\.$username == username).first()
+        FluentBlogUser.query(on: database).filter(\.$username == username).first().map { $0?.toBlogUser() }
     }
     
     func save(_ user: BlogUser) -> EventLoopFuture<BlogUser> {
-        user.save(on: database).map { user }
+        let fluentUser = user.toFluentUser()
+        return fluentUser.save(on: database).map { fluentUser.toBlogUser() }
     }
     
     func delete(_ user: BlogUser) -> EventLoopFuture<Void> {
-        user.delete(on: database)
+        let fluentUser = user.toFluentUser()
+        return fluentUser.delete(on: database)
     }
     
     func getUsersCount() -> EventLoopFuture<Int> {
-        BlogUser.query(on: database).count()
+        FluentBlogUser.query(on: database).count()
     }
     
     
