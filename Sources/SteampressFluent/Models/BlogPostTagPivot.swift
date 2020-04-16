@@ -1,5 +1,5 @@
 import SteamPress
-import FluentPostgreSQL
+import Fluent
 
 public final class BlogPostTagPivot: PostgreSQLUUIDModel, ModifiablePivot {
     public var id: UUID?

@@ -1,4 +1,4 @@
-import FluentPostgreSQL
+import Fluent
 import SteamPress
 
 extension BlogTag: Model {

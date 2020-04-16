@@ -1,5 +1,5 @@
 import SteamPress
-import FluentPostgreSQL
+import Fluent
 
 extension BlogPost: Model {
     public typealias ID = Int

@@ -1,4 +1,4 @@
-import FluentPostgreSQL
+import Fluent
 import Crypto
 
 public struct BlogAdminUser: PostgreSQLMigration {
