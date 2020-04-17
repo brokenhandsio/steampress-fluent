@@ -18,13 +18,13 @@ struct FluentUserRepository: BlogUserRepository {
         let allUsersQuery = FluentBlogUser.query(on: database).all()
         let allPostsQuery = FluentBlogPost.query(on: database).filter(\.$published == true).all()
         return allUsersQuery.and(allPostsQuery).map { users, posts in
-            let postsByUserID = [Int: [BlogPost]](grouping: posts, by: { $0[keyPath: \.author] })
+            let postsByUserID = [Int: [FluentBlogPost]](grouping: posts, by: { $0[keyPath: \.$author.id] })
             return users.map { user in
-                guard let userID = user.userID else {
-                    return (user, 0)
+                guard let userID = user.id else {
+                    return (user.toBlogUser(), 0)
                 }
                 let userPostCount = postsByUserID[userID]?.count ?? 0
-                return (user, userPostCount)
+                return (user.toBlogUser(), userPostCount)
             }
         }
     }

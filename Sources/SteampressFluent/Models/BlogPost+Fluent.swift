@@ -21,8 +21,8 @@ final class FluentBlogPost: Model {
     @Field(key: "contents")
     var contents: String
     
-    @Field(key: "author")
-    var author: Int
+    @Parent(key: "author")
+    var author: FluentBlogUser
     
     @Field(key: "created")
     var created: Date
@@ -36,12 +36,13 @@ final class FluentBlogPost: Model {
     @Field(key: "published")
     var published: Bool
     
+    init() {}
     init(id: Int?, title: String, contents: String, author: Int, creationDate: Date, slugUrl: String,
          published: Bool) {
         self.id = id
         self.title = title
         self.contents = contents
-        self.author = author
+        self.$author.id = author
         self.created = creationDate
         self.slugUrl = slugUrl
         self.lastEdited = nil
@@ -51,7 +52,7 @@ final class FluentBlogPost: Model {
 
 extension FluentBlogPost {
     func toBlogPost() -> BlogPost {
-        BlogPost(blogID: self.id, title: self.title, contents: self.contents, authorID: self.author, creationDate: self.created, slugUrl: self.slugUrl, published: self.published)
+        BlogPost(blogID: self.id, title: self.title, contents: self.contents, authorID: self.$author.id, creationDate: self.created, slugUrl: self.slugUrl, published: self.published)
     }
 }
 

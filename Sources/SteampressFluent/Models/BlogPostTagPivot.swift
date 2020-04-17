@@ -1,19 +1,25 @@
 import SteamPress
 import Fluent
+import Foundation
 
-public final class BlogPostTagPivot: ModifiablePivot {
-    public var id: UUID?
-    public var postID: FluentBlogPost.ID
-    public var tagID: FluentBlogTag.ID
+final class BlogPostTagPivot: Model {
     
-    public typealias Left = BlogPost
-    public typealias Right = BlogTag
-    public static let leftIDKey: LeftIDKey = \.postID
-    public static let rightIDKey: RightIDKey = \.tagID
+    #warning("Check this")
+    static let schema = "BlogPost_BlogTag"
     
-    public init(_ post: BlogPost, _ tag: BlogTag) throws {
-        self.postID = try post.requireID()
-        self.tagID = try tag.requireID()
+    @ID(key: .id)
+    var id: UUID?
+    
+    @Parent(key: "postID")
+    var post: FluentBlogPost
+    
+    @Parent(key: "tagID")
+    var tag: FluentBlogTag
+    
+    init() {}
+    init(blogID: FluentBlogPost.IDValue, tagID: FluentBlogTag.IDValue) {
+        self.$post.id = blogID
+        self.$tag.id = tagID
     }
 }
 

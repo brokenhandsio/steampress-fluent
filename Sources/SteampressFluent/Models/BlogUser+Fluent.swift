@@ -56,6 +56,9 @@ final class FluentBlogUser: Model {
     @Field(key: "tagline")
     var tagline: String?
     
+    @Children(for: \.$author)
+    var posts: [FluentBlogPost]
+    
     init() {}
     init(userID: Int?, name: String, username: String, password: String, profilePicture: String?, twitterHandle: String?, biography: String?, tagline: String?) {
         self.id = userID

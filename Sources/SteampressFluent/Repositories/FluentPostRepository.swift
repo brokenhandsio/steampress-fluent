@@ -36,16 +36,18 @@ struct FluentPostRepository: BlogPostRepository {
     }
     
     func getAllPostsSortedByPublishDate(for user: BlogUser, includeDrafts: Bool, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        let query = try user.posts.query(on: database).sort(\.created, .descending)
+        let fluentUser = user.toFluentUser()
+        let query = fluentUser.$posts.query(on: database).sort(\.$created, .descending)
         if !includeDrafts {
-            query.filter(\.published == true)
+            query.filter(\.$published == true)
         }
         let upperLimit = count + offset
-        return query.range(offset..<upperLimit).all()
+        return query.range(offset..<upperLimit).all().map { $0.map { $0.toBlogPost() }}
     }
     
     func getPostCount(for user: BlogUser) -> EventLoopFuture<Int> {
-        try user.posts.query(on: database).filter(\.published == true).count()
+        let fluentUser = user.toFluentUser()
+        return fluentUser.$posts.query(on: database).filter(\.$published == true).count()
     }
     
     func getPost(slug: String) -> EventLoopFuture<BlogPost?> {
