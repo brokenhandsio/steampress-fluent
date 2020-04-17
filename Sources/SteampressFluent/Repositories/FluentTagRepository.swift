@@ -17,10 +17,10 @@ struct FluentTagRepository: BlogTagRepository {
     func getAllTagsWithPostCount() -> EventLoopFuture<[(BlogTag, Int)]> {
         let allTagsQuery = FluentBlogTag.query(on: database).all()
         let allPivotsQuery = BlogPostTagPivot.query(on: database).all()
-        return allTagsQuery.and(allPivotsQuery).map { tags, pivots in
+        return allTagsQuery.and(allPivotsQuery).flatMapThrowing { tags, pivots in
             return try tags.map { tag in
-                let postCount = try pivots.filter { try $0.tagID == tag.requireID() }.count
-                return (tag, postCount)
+                let postCount = try pivots.filter { try $0.$tag.id == tag.requireID() }.count
+                return (tag.toBlogTag(), postCount)
             }
         }
     }
@@ -30,7 +30,7 @@ struct FluentTagRepository: BlogTagRepository {
         let allPivotsQuery = BlogPostTagPivot.query(on: database).all()
         return allTagsQuery.and(allPivotsQuery).map { tags, pivots in
             let pivotsSortedByPost = Dictionary(grouping: pivots) { (pivot) -> Int in
-                return pivot.postID
+                return pivot.$post.id
             }
             
             let postsWithTags = pivotsSortedByPost.mapValues { value in
@@ -44,7 +44,10 @@ struct FluentTagRepository: BlogTagRepository {
     }
     
     func getTags(for post: BlogPost) -> EventLoopFuture<[BlogTag]> {
-        try post.tags.query(on: database).all()
+        let fluentPost = post.toFluentPost()
+        return fluentPost.$tags.query(on: database).all().map { fluentTags in
+            fluentTags.map { $0.toBlogTag() }
+        }
     }
     
     func getTag(_ name: String) -> EventLoopFuture<BlogTag?> {
@@ -57,29 +60,36 @@ struct FluentTagRepository: BlogTagRepository {
     }
     
     func deleteTags(for post: BlogPost) -> EventLoopFuture<Void> {
-        try post.tags.query(on: database).all().flatMap { tags in
-            let tagIDs = tags.compactMap { $0.tagID }
-            return try BlogPostTagPivot.query(on: database).filter(\.postID == post.requireID()).filter(\.tagID ~~ tagIDs).delete().flatMap { _ in
-                try self.cleanupTags(on: database, tags: tags)
+        let fluentPost = post.toFluentPost()
+        return fluentPost.$tags.query(on: database).all().flatMap { tags in
+            let tagIDs = tags.compactMap { $0.id }
+            do {
+                return try BlogPostTagPivot.query(on: database).filter(\.$post.id == post.requireID()).filter(\.$tag.id ~~ tagIDs).delete().flatMap { _ in
+                    self.cleanupTags(on: database, tags: tags)
+                }
+            } catch {
+                return self.database.eventLoop.makeFailedFuture(error)
             }
         }
     }
     
     func remove(_ tag: BlogTag, from post: BlogPost) -> EventLoopFuture<Void> {
-        post.tags.detach(tag, on: database).flatMap {
-            try self.cleanupTags(on: database, tags: [tag])
+        let fluentPost = post.toFluentPost()
+        let fluentTag = tag.toFluentBlogTag()
+        return fluentPost.$tags.detach(fluentTag, on: database).flatMap {
+            self.cleanupTags(on: self.database, tags: [fluentTag])
         }
     }
     
-    func cleanupTags(on database: Database, tags: [BlogTag]) throws -> EventLoopFuture<Void> {
+    func cleanupTags(on database: Database, tags: [FluentBlogTag]) -> EventLoopFuture<Void> {
         var tagCleanups = [EventLoopFuture<Void>]()
         for tag in tags {
-            let tagCleanup = try tag.posts.query(on: database).all().flatMap(to: Void.self) { posts in
+            let tagCleanup: EventLoopFuture<Void> = tag.$posts.query(on: database).all().flatMap { posts in
                 let cleanupFuture: EventLoopFuture<Void>
                 if posts.count == 0 {
                     cleanupFuture = tag.delete(on: database)
                 } else {
-                    cleanupFuture = database.future()
+                    cleanupFuture = database.eventLoop.future()
                 }
                 return cleanupFuture
             }
@@ -89,7 +99,9 @@ struct FluentTagRepository: BlogTagRepository {
     }
     
     func add(_ tag: BlogTag, to post: BlogPost) -> EventLoopFuture<Void> {
-        post.tags.attach(tag, on: database).transform(to: ())
+        let fluentPost = post.toFluentPost()
+        let fluentTag = tag.toFluentBlogTag()
+        return fluentPost.$tags.attach(fluentTag, on: database).transform(to: ())
     }
     
 }

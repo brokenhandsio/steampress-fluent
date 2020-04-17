@@ -17,6 +17,9 @@ final class FluentBlogTag: Model {
     @Field(key: "name")
     var name: String
     
+    @Siblings(through: BlogPostTagPivot.self, from: \.$tag, to: \.$post)
+    var posts: [FluentBlogPost]
+    
     init() {}
     init(id: Int?, name: String) {
         self.id = id

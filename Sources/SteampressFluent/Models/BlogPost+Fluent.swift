@@ -36,6 +36,9 @@ final class FluentBlogPost: Model {
     @Field(key: "published")
     var published: Bool
     
+    @Siblings(through: BlogPostTagPivot.self, from: \.$post, to: \.$tag)
+    var tags: [FluentBlogTag]
+    
     init() {}
     init(id: Int?, title: String, contents: String, author: Int, creationDate: Date, slugUrl: String,
          published: Bool) {
