@@ -65,25 +65,22 @@ extension BlogPost {
     }
 }
 
-//extension BlogPost: Migration {
-//    public static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
-//        Database.create(BlogPost.self, on: connection) { builder in
-//            builder.field(for: \.blogID, isIdentifier: true)
-//            builder.field(for: \.title)
-//            builder.field(for: \.contents)
-//            builder.field(for: \.author)
-//            builder.field(for: \.created)
-//            builder.field(for: \.lastEdited)
-//            builder.field(for: \.slugUrl)
-//            builder.field(for: \.published)
-//            builder.unique(on: \.slugUrl)
-//            builder.reference(from: \.author, to: \BlogUser.userID)
-//        }
-//    }
-//}
-//
-//extension BlogPost {
-//    var tags: Siblings<BlogPost, BlogTag, BlogPostTagPivot> {
-//        return siblings()
-//    }
-//}
+public struct CreateBlogPost: Migration {
+    public func prepare(on database: Database) -> EventLoopFuture<Void> {
+        database.schema("BlogPost")
+            .id()
+            .field("title", .string, .required)
+            .field("contents", .string, .required)
+            .field("author", .int, .required, .references("BlogUser", "userID"))
+            .field("created", .datetime, .required)
+            .field("lastEdited", .datetime)
+            .field("slugUrl", .string, .required)
+            .field("published", .bool, .required)
+            .unique(on: "slugUrl")
+            .create()
+    }
+    
+    public func revert(on database: Database) -> EventLoopFuture<Void> {
+        database.schema("BlogPost").delete()
+    }
+}

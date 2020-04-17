@@ -24,6 +24,9 @@ final class BlogPostTagPivot: Model {
 }
 
 public struct CreatePostTagPivot: Migration {
+    
+    #warning("Match name to old migration")
+    
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         #warning("Check name")
         return database.schema("BlogPost_BlogTag")

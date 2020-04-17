@@ -1,29 +1,6 @@
 import SteamPress
 import Fluent
 
-//extension BlogUser: Migration {
-//    static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
-//        Database.create(BlogUser.self, on: connection) { builder in
-//            builder.field(for: \.userID, isIdentifier: true)
-//            builder.field(for: \.name)
-//            builder.field(for: \.username)
-//            builder.field(for: \.password)
-//            builder.field(for: \.resetPasswordRequired)
-//            builder.field(for: \.profilePicture)
-//            builder.field(for: \.twitterHandle)
-//            builder.field(for: \.biography)
-//            builder.field(for: \.tagline)
-//            builder.unique(on: \.username)
-//        }
-//    }
-//}
-
-//extension BlogUser {
-//    var posts: Children<BlogUser, BlogPost> {
-//        return children(\.author)
-//    }
-//}
-
 final class FluentBlogUser: Model {
     
     typealias IDValue = Int
@@ -81,5 +58,26 @@ extension FluentBlogUser {
 extension BlogUser {
     func toFluentUser() -> FluentBlogUser {
         FluentBlogUser(userID: self.userID, name: self.name, username: self.username, password: self.password, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
+    }
+}
+
+public struct CreateBlogUser: Migration {
+    public func prepare(on database: Database) -> EventLoopFuture<Void> {
+        database.schema("BlogUser")
+            .id()
+            .field("name", .string, .required)
+            .field("username", .string, .required)
+            .field("password", .string, .required)
+            .field("resetPasswordRequired", .bool, .required)
+            .field("profilePicture", .string)
+            .field("twitterHandle", .string)
+            .field("biography", .string)
+            .field("tagline", .string)
+            .unique(on: "username")
+            .create()
+    }
+    
+    public func revert(on database: Database) -> EventLoopFuture<Void> {
+        database.schema("BlogUser").delete()
     }
 }
