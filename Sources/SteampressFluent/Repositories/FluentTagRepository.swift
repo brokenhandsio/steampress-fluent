@@ -44,8 +44,10 @@ struct FluentTagRepository: BlogTagRepository {
     }
     
     func getTags(for post: BlogPost) -> EventLoopFuture<[BlogTag]> {
-        let fluentPost = post.toFluentPost()
-        return fluentPost.$tags.query(on: database).all().map { fluentTags in
+        guard let postID = post.blogID else {
+            return database.eventLoop.makeFailedFuture(FluentError.idRequired)
+        }
+        return FluentBlogTag.query(on: database).join(BlogPostTagPivot.self, on: \FluentBlogTag.$id == \BlogPostTagPivot.$tag.$id).filter(BlogPostTagPivot.self, \BlogPostTagPivot.$post.$id == postID).all().map { fluentTags in
             fluentTags.map { $0.toBlogTag() }
         }
     }
@@ -60,39 +62,46 @@ struct FluentTagRepository: BlogTagRepository {
     }
     
     func deleteTags(for post: BlogPost) -> EventLoopFuture<Void> {
-        let fluentPost = post.toFluentPost()
-        return fluentPost.$tags.query(on: database).all().flatMap { tags in
+        guard let postID = post.blogID else {
+            return database.eventLoop.makeFailedFuture(FluentError.idRequired)
+        }
+        return FluentBlogTag.query(on: database).join(BlogPostTagPivot.self, on: \FluentBlogTag.$id == \BlogPostTagPivot.$tag.$id).filter(BlogPostTagPivot.self, \BlogPostTagPivot.$post.$id == postID).all().flatMap { tags in
             let tagIDs = tags.compactMap { $0.id }
-            do {
-                let postID = try fluentPost.requireID()
-                return BlogPostTagPivot.query(on: self.database).filter(\.$post.$id == postID).filter(\.$tag.$id ~~ tagIDs).delete().flatMap { _ in
-                    self.cleanupTags(on: self.database, tags: tags)
-                }
-            } catch {
-                return self.database.eventLoop.makeFailedFuture(error)
+            return BlogPostTagPivot.query(on: self.database).filter(\.$post.$id == postID).filter(\.$tag.$id ~~ tagIDs).delete().flatMap { _ in
+                self.cleanupTags(on: self.database, tags: tags)
             }
         }
     }
     
     func remove(_ tag: BlogTag, from post: BlogPost) -> EventLoopFuture<Void> {
-        let fluentPost = post.toFluentPost()
-        let fluentTag = tag.toFluentBlogTag()
-        return fluentPost.$tags.detach(fluentTag, on: database).flatMap {
-            self.cleanupTags(on: self.database, tags: [fluentTag])
+        guard let tagID = tag.tagID, let postID = post.blogID else {
+            return database.eventLoop.makeFailedFuture(FluentError.idRequired)
+        }
+        return BlogPostTagPivot.query(on: database).filter(\.$post.$id == postID).filter(\.$tag.$id == tagID).delete().flatMap {
+            self.cleanupTags(on: self.database, tags: [tag.toFluentBlogTag()])
         }
     }
     
     func cleanupTags(on database: Database, tags: [FluentBlogTag]) -> EventLoopFuture<Void> {
         var tagCleanups = [EventLoopFuture<Void>]()
         for tag in tags {
-            let tagCleanup: EventLoopFuture<Void> = tag.$posts.query(on: database).all().flatMap { posts in
-                let cleanupFuture: EventLoopFuture<Void>
-                if posts.count == 0 {
-                    cleanupFuture = tag.delete(on: database)
-                } else {
-                    cleanupFuture = database.eventLoop.future()
-                }
-                return cleanupFuture
+            guard let tagID = tag.id else {
+                return database.eventLoop.makeFailedFuture(FluentError.idRequired)
+            }
+            
+            let tagCleanup: EventLoopFuture<Void> =
+                FluentBlogPost.query(on: database)
+                    .join(BlogPostTagPivot.self, on: \FluentBlogPost.$id == \BlogPostTagPivot.$post.$id)
+                    .filter(BlogPostTagPivot.self, \BlogPostTagPivot.$tag.$id == tagID)
+                    .all()
+                    .flatMap { posts in
+                        let cleanupFuture: EventLoopFuture<Void>
+                        if posts.count == 0 {
+                            cleanupFuture = tag.delete(on: database)
+                        } else {
+                            cleanupFuture = database.eventLoop.future()
+                        }
+                        return cleanupFuture
             }
             tagCleanups.append(tagCleanup)
         }
@@ -100,11 +109,11 @@ struct FluentTagRepository: BlogTagRepository {
     }
     
     func add(_ tag: BlogTag, to post: BlogPost) -> EventLoopFuture<Void> {
-        let fluentPost = post.toFluentPost()
-        fluentPost.$id.exists = true
-        let fluentTag = tag.toFluentBlogTag()
-        fluentTag.$id.exists = true
-        return fluentPost.$tags.attach(fluentTag, on: database).transform(to: ())
+        guard let postID = post.blogID, let tagID = tag.tagID else {
+            return database.eventLoop.makeFailedFuture(FluentError.idRequired)
+        }
+        let pivot = BlogPostTagPivot(blogID: postID, tagID: tagID)
+        return pivot.save(on: database)
     }
     
 }

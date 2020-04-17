@@ -48,8 +48,10 @@ struct FluentPostRepository: BlogPostRepository {
     }
     
     func getPostCount(for user: BlogUser) -> EventLoopFuture<Int> {
-        let fluentUser = user.toFluentUser()
-        return fluentUser.$posts.query(on: database).filter(\.$published == true).count()
+        guard let authorID = user.userID else {
+            return database.eventLoop.makeFailedFuture(FluentError.idRequired)
+        }
+        return FluentBlogPost.query(on: database).filter(\.$author.$id == authorID).filter(\.$published == true).count()
     }
     
     func getPost(slug: String) -> EventLoopFuture<BlogPost?> {
@@ -61,15 +63,19 @@ struct FluentPostRepository: BlogPostRepository {
     }
     
     func getSortedPublishedPosts(for tag: BlogTag, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        let fluentTag = tag.toFluentBlogTag()
-        let query = fluentTag.$posts.query(on: database).filter(\.$published == true).sort(\.$created, .descending)
+        guard let tagID = tag.tagID else {
+            return database.eventLoop.makeFailedFuture(FluentError.idRequired)
+        }
+        let query = FluentBlogPost.query(on: database).join(BlogPostTagPivot.self, on: \FluentBlogPost.$id == \BlogPostTagPivot.$post.$id).filter(BlogPostTagPivot.self, \BlogPostTagPivot.$tag.$id == tagID).filter(\.$published == true).sort(\.$created, .descending)
         let upperLimit = count + offset
         return query.range(offset..<upperLimit).all().map { $0.map { $0.toBlogPost() }}
     }
     
     func getPublishedPostCount(for tag: BlogTag) -> EventLoopFuture<Int> {
-        let fluentTag = tag.toFluentBlogTag()
-        return fluentTag.$posts.query(on: database).filter(\.$published == true).count()
+        guard let tagID = tag.tagID else {
+            return database.eventLoop.makeFailedFuture(FluentError.idRequired)
+        }
+        return FluentBlogPost.query(on: database).join(BlogPostTagPivot.self, on: \FluentBlogPost.$id == \BlogPostTagPivot.$post.$id).filter(BlogPostTagPivot.self, \BlogPostTagPivot.$tag.$id == tagID).filter(\.$published == true).count()
     }
     
     func findPublishedPostsOrdered(for searchTerm: String, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
