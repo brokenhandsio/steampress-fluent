@@ -70,63 +70,78 @@ class TagRepositoryTests: XCTestCase {
     }
     
     func testAddingTagToPost() throws {
-        let tag = try BlogTag(name: "SteamPress").save(on: app.db).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
-        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
+        let tag = FluentBlogTag(id: nil, name: "SteamPress")
+        try tag.save(on: app.db).wait()
+        let user = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        try user.save(on: app.db).wait()
+        let post = try FluentBlogPost(id: nil, title: "A Post", contents: "Some contents", author: user.requireID(), creationDate: Date(), slugUrl: "a-post", published: true)
+        try post.save(on: app.db).wait()
         
-        try repository.add(tag, to: post).wait()
+        try repository.add(tag.toBlogTag(), to: post.toBlogPost()).wait()
         
         let tagLinks = try BlogPostTagPivot.query(on: app.db).all().wait()
         XCTAssertEqual(tagLinks.count, 1)
-        XCTAssertEqual(tagLinks.first?.tagID, tag.tagID)
-        XCTAssertEqual(tagLinks.first?.postID, post.blogID)
+        XCTAssertEqual(tagLinks.first?.$tag.id, tag.id)
+        XCTAssertEqual(tagLinks.first?.$post.id, post.id)
     }
     
     func testRemovingTagFromPost() throws {
-        let tag = try BlogTag(name: "SteamPress").save(on: app.db).wait()
-        let tag2 = try BlogTag(name: "Testing").save(on: app.db).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
-        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
-        _ = try post.tags.attach(tag, on: app.db).wait()
-        _ = try post.tags.attach(tag2, on: app.db).wait()
+        let tag = FluentBlogTag(id: nil, name: "SteamPress")
+        try tag.save(on: app.db).wait()
+        let tag2 = FluentBlogTag(id: nil, name: "Testing")
+        try tag2.save(on: app.db).wait()
+        let user = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        try user.save(on: app.db).wait()
+        let post = try FluentBlogPost(id: nil, title: "A Post", contents: "Some contents", author: user.requireID(), creationDate: Date(), slugUrl: "a-post", published: true)
+        try post.save(on: app.db).wait()
+        _ = try post.$tags.attach(tag, on: app.db).wait()
+        _ = try post.$tags.attach(tag2, on: app.db).wait()
         
-        try repository.remove(tag, from: post).wait()
+        try repository.remove(tag.toBlogTag(), from: post.toBlogPost()).wait()
         
         let tagLinks = try BlogPostTagPivot.query(on: app.db).all().wait()
         XCTAssertEqual(tagLinks.count, 1)
         
-        let allTags = try BlogTag.query(on: app.db).all().wait()
+        let allTags = try FluentBlogTag.query(on: app.db).all().wait()
         XCTAssertEqual(allTags.count, 1)
         XCTAssertEqual(allTags.first?.name, tag2.name)
     }
     
     func testGettingTagsForPost() throws {
-        let tag1 = try BlogTag(name: "SteamPress").save(on: app.db).wait()
-        let tag2 = try BlogTag(name: "Engineering").save(on: app.db).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
-        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
+        let tag1 = FluentBlogTag(id: nil, name: "SteamPress")
+        try tag1.save(on: app.db).wait()
+        let tag2 = FluentBlogTag(id: nil, name: "Engineering")
+        try tag2.save(on: app.db).wait()
+        let user = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        try user.save(on: app.db).wait()
+        let post = try FluentBlogPost(id: nil, title: "A Post", contents: "Some contents", author: user.requireID(), creationDate: Date(), slugUrl: "a-post", published: true)
+        try post.save(on: app.db).wait()
         
-        _ = try post.tags.attach(tag1, on: app.db).wait()
-        _ = try post.tags.attach(tag2, on: app.db).wait()
+        _ = try post.$tags.attach(tag1, on: app.db).wait()
+        _ = try post.$tags.attach(tag2, on: app.db).wait()
         
-        let postTags =  try repository.getTags(for: post).wait()
+        let postTags =  try repository.getTags(for: post.toBlogPost()).wait()
         XCTAssertEqual(postTags.count, 2)
         XCTAssertEqual(postTags.first?.name, tag1.name)
         XCTAssertEqual(postTags.last?.name, tag2.name)
     }
     
     func testDeletingTagsForPost() throws {
-        let tag1 = try BlogTag(name: "SteamPress").save(on: app.db).wait()
-        let tag2 = try BlogTag(name: "Engineering").save(on: app.db).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
-        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
+        let tag1 = FluentBlogTag(id: nil, name: "SteamPress")
+        try tag1.save(on: app.db).wait()
+        let tag2 = FluentBlogTag(id: nil, name: "Engineering")
+        try tag2.save(on: app.db).wait()
+        let user = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        try user.save(on: app.db).wait()
+        let post = try FluentBlogPost(id: nil, title: "A Post", contents: "Some contents", author: user.requireID(), creationDate: Date(), slugUrl: "a-post", published: true)
+        try post.save(on: app.db).wait()
         
-        _ = try post.tags.attach(tag1, on: app.db).wait()
-        _ = try post.tags.attach(tag2, on: app.db).wait()
+        _ = try post.$tags.attach(tag1, on: app.db).wait()
+        _ = try post.$tags.attach(tag2, on: app.db).wait()
         
-        try repository.deleteTags(for: post).wait()
+        try repository.deleteTags(for: post.toBlogPost()).wait()
         
-        let tagCount = try BlogTag.query(on: app.db).count().wait()
+        let tagCount = try FluentBlogTag.query(on: app.db).count().wait()
         XCTAssertEqual(tagCount, 0)
         
         let pivotCount = try BlogPostTagPivot.query(on: app.db).count().wait()

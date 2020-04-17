@@ -24,11 +24,11 @@ class UserRepositoryTests: XCTestCase {
     
     func testSavingUser() throws {
         let newUser = BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
-        let savedUser = try repository.save(newUser, on: app).wait()
+        let savedUser = try repository.save(newUser).wait()
         
         XCTAssertNotNil(savedUser.userID)
         
-        let userFromDB = try BlogUser.query(on: app.db).filter(\.userID == savedUser.userID).first().wait()
+        let userFromDB = try FluentBlogUser.query(on: app.db).filter(\.$id == savedUser.userID!).first().wait()
         XCTAssertEqual(userFromDB?.username, newUser.username)
     }
     
@@ -37,10 +37,10 @@ class UserRepositoryTests: XCTestCase {
         let newUser = FluentBlogUser(userID: nil, name: "Alice", username: username, password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try newUser.save(on: app.db).wait()
 
-        let retrievedUser = try repository.getUser(username: username, on: app).wait()
+        let retrievedUser = try repository.getUser(username: username).wait()
 
         XCTAssertEqual(retrievedUser?.username, username)
-        XCTAssertEqual(retrievedUser?.userID, newUser.userID)
+        XCTAssertEqual(retrievedUser?.userID, newUser.id)
     }
     
     func testGettingAUserByID() throws {
