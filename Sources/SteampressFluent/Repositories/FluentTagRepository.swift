@@ -35,9 +35,9 @@ struct FluentTagRepository: BlogTagRepository {
             
             let postsWithTags = pivotsSortedByPost.mapValues { value in
                 return value.map { pivot in
-                    tags.first { $0.tagID == pivot.tagID }
+                    tags.first { $0.id == pivot.$tag.id }
                 }
-            }.mapValues { $0.compactMap { $0 } }
+            }.mapValues { $0.compactMap { $0?.toBlogTag() } }
             
             return postsWithTags
         }
@@ -64,8 +64,9 @@ struct FluentTagRepository: BlogTagRepository {
         return fluentPost.$tags.query(on: database).all().flatMap { tags in
             let tagIDs = tags.compactMap { $0.id }
             do {
-                return try BlogPostTagPivot.query(on: database).filter(\.$post.id == post.requireID()).filter(\.$tag.id ~~ tagIDs).delete().flatMap { _ in
-                    self.cleanupTags(on: database, tags: tags)
+                let postID = try fluentPost.requireID()
+                return BlogPostTagPivot.query(on: self.database).filter(\.$post.$id == postID).filter(\.$tag.$id ~~ tagIDs).delete().flatMap { _ in
+                    self.cleanupTags(on: self.database, tags: tags)
                 }
             } catch {
                 return self.database.eventLoop.makeFailedFuture(error)

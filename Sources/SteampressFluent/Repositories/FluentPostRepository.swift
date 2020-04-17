@@ -59,13 +59,15 @@ struct FluentPostRepository: BlogPostRepository {
     }
     
     func getSortedPublishedPosts(for tag: BlogTag, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        let query = try tag.posts.query(on: database).filter(\.published == true).sort(\.created, .descending)
+        let fluentTag = tag.toFluentBlogTag()
+        let query = fluentTag.$posts.query(on: database).filter(\.$published == true).sort(\.$created, .descending)
         let upperLimit = count + offset
-        return query.range(offset..<upperLimit).all()
+        return query.range(offset..<upperLimit).all().map { $0.map { $0.toBlogPost() }}
     }
     
     func getPublishedPostCount(for tag: BlogTag) -> EventLoopFuture<Int> {
-        return try tag.posts.query(on: database).filter(\.published == true).count()
+        let fluentTag = tag.toFluentBlogTag()
+        return fluentTag.$posts.query(on: database).filter(\.$published == true).count()
     }
     
     func findPublishedPostsOrdered(for searchTerm: String, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
@@ -75,15 +77,17 @@ struct FluentPostRepository: BlogPostRepository {
         let paginatedQuery = query.range(offset..<upperLimit)
         
         return paginatedQuery.group(.or) { or in
-            or.filter(\.$title, .ilike, "%\(searchTerm)%")
-            or.filter(\.$contents, .ilike, "%\(searchTerm)%")
+            #warning("TODO")
+//            or.filter(\.$title, .ilike, "%\(searchTerm)%")
+//            or.filter(\.$contents, .ilike, "%\(searchTerm)%")
         }.all().map { $0.map { $0.toBlogPost() }}
     }
     
     func getPublishedPostCount(for searchTerm: String) -> EventLoopFuture<Int> {
         FluentBlogPost.query(on: database).filter(\.$published == true).group(.or) { or in
-            or.filter(\.$title, .ilike, "%\(searchTerm)%")
-            or.filter(\.$contents, .ilike, "%\(searchTerm)%")
+            #warning("TODO")
+//            or.filter(\.$title, .ilike, "%\(searchTerm)%")
+//            or.filter(\.$contents, .ilike, "%\(searchTerm)%")
         }.count()
     }
     
