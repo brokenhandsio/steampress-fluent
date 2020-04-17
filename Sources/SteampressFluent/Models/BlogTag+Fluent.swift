@@ -1,12 +1,6 @@
 import Fluent
 import SteamPress
 
-//extension BlogTag: Model {
-//    public typealias ID = Int
-//    public typealias Database = PostgreSQLDatabase
-//    public static var idKey: IDKey { return \.tagID }
-//}
-
 final class FluentBlogTag: Model {
     typealias IDValue = Int
     static let schema = "BlogTag"
@@ -27,21 +21,19 @@ final class FluentBlogTag: Model {
     }
 }
 
-//extension BlogTag: Migration {
-//    public static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
-//        Database.create(BlogTag.self, on: connection) { builder in
-//            builder.field(for: \.tagID, isIdentifier: true)
-//            builder.field(for: \.name)
-//            builder.unique(on: \.name)
-//        }
-//    }
-//}
-//
-//extension BlogTag {
-//    var posts: Siblings<BlogTag, BlogPost, BlogPostTagPivot> {
-//        return siblings()
-//    }
-//}
+public struct CreateBlogTag: Migration {
+    public func prepare(on database: Database) -> EventLoopFuture<Void> {
+        database.schema("BlogTag")
+            .id()
+            .field("name", .string, .required)
+            .unique(on: "name")
+            .create()
+    }
+    
+    public func revert(on database: Database) -> EventLoopFuture<Void> {
+        database.schema("BlogTag").delete()
+    }
+}
 
 extension FluentBlogTag {
     func toBlogTag() -> BlogTag {

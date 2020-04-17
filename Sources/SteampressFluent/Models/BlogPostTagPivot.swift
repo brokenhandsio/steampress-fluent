@@ -23,14 +23,18 @@ final class BlogPostTagPivot: Model {
     }
 }
 
-//extension BlogPostTagPivot: Migration {
-//    public static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
-//        Database.create(BlogPostTagPivot.self, on: connection) { builder in
-//            builder.field(for: \.id, isIdentifier: true)
-//            builder.field(for: \.postID)
-//            builder.field(for: \.tagID)
-//            builder.reference(from: \.postID, to: \BlogPost.blogID, onDelete: .cascade)
-//            builder.reference(from: \.tagID, to: \BlogTag.tagID, onDelete: .cascade)
-//        }
-//    }
-//}
+public struct CreatePostTagPivot: Migration {
+    public func prepare(on database: Database) -> EventLoopFuture<Void> {
+        #warning("Check name")
+        return database.schema("BlogPost_BlogTag")
+            .id()
+            .field("postID", .int, .required, .references("BlogPost", "postID", onDelete: .cascade))
+            .field("tagID", .int, .required, .references("BlogTag", "tagID", onDelete: .cascade))
+            .create()
+    }
+    
+    public func revert(on database: Database) -> EventLoopFuture<Void> {
+        #warning("Check name")
+        return database.schema("BlogPost_BlogTag").delete()
+    }
+}
