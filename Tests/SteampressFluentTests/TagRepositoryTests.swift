@@ -28,28 +28,28 @@ class TagRepositoryTests: XCTestCase {
         
         XCTAssertNotNil(savedTag.tagID)
         
-        let tagFromDB = try BlogTag.query(on: app.db).filter(\.tagID == savedTag.tagID).first().wait()
+        let tagFromDB = try FluentBlogTag.query(on: app.db).filter(\.$id == savedTag.tagID!).first().wait()
         XCTAssertEqual(tagFromDB?.name, newTag.name)
     }
     
     func testGetingATag() throws {
         let tagName = "Engineering"
-        let tag = BlogTag(name: tagName)
-        _ = try tag.save(on: app.db).wait()
+        let tag = FluentBlogTag(id: nil, name: tagName)
+        try tag.save(on: app.db).wait()
         
         let retrievedTag = try repository.getTag(tagName).wait()
         
         XCTAssertEqual(retrievedTag?.name, tagName)
-        XCTAssertEqual(retrievedTag?.tagID, tag.tagID)
+        XCTAssertEqual(retrievedTag?.tagID, tag.id)
     }
     
     func testGettingAllTags() throws {
         let tagName1 = "Engineering"
         let tagName2 = "SteamPress"
-        _ = try BlogTag(name: tagName1).save(on: app.db).wait()
-        _ = try BlogTag(name: tagName2).save(on: app.db).wait()
+        try FluentBlogTag(id: nil, name: tagName1).save(on: app.db).wait()
+        try FluentBlogTag(id: nil, name: tagName2).save(on: app.db).wait()
         
-        let tags = try repository.getAllTags(on: app).wait()
+        let tags = try repository.getAllTags().wait()
         
         XCTAssertEqual(tags.count, 2)
         XCTAssertEqual(tags.first?.name, tagName1)
@@ -59,9 +59,9 @@ class TagRepositoryTests: XCTestCase {
     func testErrorOccursWhenSavingATagWithNameThatAlreadyExists() throws {
         let tagName = "SteamPress"
         var errorOccurred = false
-        _ = try BlogTag(name: tagName).save(on: app.db).wait()
+        try FluentBlogTag(id: nil, name: tagName).save(on: app.db).wait()
         do {
-            _ = try BlogTag(name: tagName).save(on: app.db).wait()
+            try FluentBlogTag(id: nil, name: tagName).save(on: app.db).wait()
         } catch {
             errorOccurred = true
         }
