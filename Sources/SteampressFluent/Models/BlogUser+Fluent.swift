@@ -69,7 +69,7 @@ public struct CreateBlogUser: Migration {
     
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         database.schema("BlogUser")
-            .id()
+            .field("userID", .int, .identifier(auto: true))
             .field("name", .string, .required)
             .field("username", .string, .required)
             .field("password", .string, .required)

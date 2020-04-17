@@ -29,7 +29,7 @@ public struct CreateBlogTag: Migration {
     
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         database.schema("BlogTag")
-            .id()
+            .field("tagID", .int, .identifier(auto: true))
             .field("name", .string, .required)
             .unique(on: "name")
             .create()
