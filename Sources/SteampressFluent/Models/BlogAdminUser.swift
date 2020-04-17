@@ -10,7 +10,7 @@ public struct BlogAdminUser: Migration {
             let password = try String.random()
             database.logger.notice("Admin's password is \(password)")
             let passwordHash = try BCryptDigest().hash(password)
-            let adminUser = FluentBlogUser(userID: nil, name: "Admin", username: "admin", password: passwordHash, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+            let adminUser = FluentBlogUser(userID: nil, name: "Admin", username: "admin", password: passwordHash, resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
             return adminUser.save(on: database)
         } catch {
             return database.eventLoop.makeFailedFuture(error)

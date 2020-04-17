@@ -15,7 +15,7 @@ class PostRepositoryTests: XCTestCase {
     override func setUpWithError() throws {
         app = try TestSetup.getApp()
         repository = FluentPostRepository(database: app.db)
-        postAuthor = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        postAuthor = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try postAuthor.save(on: app.db).wait()
     }
     
@@ -36,13 +36,13 @@ class PostRepositoryTests: XCTestCase {
     }
     
     func testDeletingAPost() throws {
-        let post = try BlogPost(title: "A new post", contents: "Some Contents", author: postAuthor.toBlogUser(), creationDate: Date(), slugUrl: "a-new-post", published: true)
-        try post.toFluentPost().save(on: app.db).wait()
+        let post = try FluentBlogPost(id: nil, title: "A new post", contents: "Some Contents", author: postAuthor.requireID(), creationDate: Date(), slugUrl: "a-new-post", published: true)
+        try post.save(on: app.db).wait()
         
         let initialCount = try FluentBlogPost.query(on: app.db).count().wait()
         XCTAssertEqual(initialCount, 1)
         
-        try repository.delete(post).wait()
+        try repository.delete(post.toBlogPost()).wait()
         
         let count = try FluentBlogPost.query(on: app.db).count().wait()
         XCTAssertEqual(count, 0)
@@ -94,7 +94,7 @@ class PostRepositoryTests: XCTestCase {
     }
     
     func testGettingPostCountForAUser() throws {
-        let otherUser = FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        let otherUser = FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try otherUser.save(on: app.db).wait()
         try FluentBlogPost(id: nil, title: "A new post", contents: "Some Contents", author: postAuthor.requireID(), creationDate: Date(), slugUrl: "a-new-post", published: true).save(on: app.db).wait()
         try FluentBlogPost(id: nil, title: "A different post", contents: "Some other contents", author: postAuthor.requireID(), creationDate: Date(), slugUrl: "a-different-post", published: true).save(on: app.db).wait()
@@ -165,7 +165,7 @@ class PostRepositoryTests: XCTestCase {
     }
     
     func testGettingAllPostsForUser() throws {
-        let otherUser = FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        let otherUser = FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try otherUser.save(on: app.db).wait()
         
         let post1 = try FluentBlogPost(id: nil, title: "A new post", contents: "Some Contents about vapor", author: postAuthor.requireID(), creationDate: Date().addingTimeInterval(-360), slugUrl: "a-new-post", published: true)
@@ -204,7 +204,7 @@ class PostRepositoryTests: XCTestCase {
     }
     
     func testGettingPaginatedPosts() throws {
-        let otherUser = FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        let otherUser = FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try otherUser.save(on: app.db).wait()
         
         let post1 = try FluentBlogPost(id: nil, title: "A new post", contents: "Some Contents about vapor", author: postAuthor.requireID(), creationDate: Date().addingTimeInterval(-360), slugUrl: "a-new-post", published: true)

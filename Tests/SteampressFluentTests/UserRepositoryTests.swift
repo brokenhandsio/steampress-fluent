@@ -34,7 +34,7 @@ class UserRepositoryTests: XCTestCase {
     
     func testGetingAUserByUsername() throws {
         let username = "alice"
-        let newUser = FluentBlogUser(userID: nil, name: "Alice", username: username, password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        let newUser = FluentBlogUser(userID: nil, name: "Alice", username: username, password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try newUser.save(on: app.db).wait()
 
         let retrievedUser = try repository.getUser(username: username).wait()
@@ -44,7 +44,7 @@ class UserRepositoryTests: XCTestCase {
     }
     
     func testGettingAUserByID() throws {
-        let newUser = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        let newUser = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try newUser.save(on: app.db).wait()
         
         let retrievedUser = try repository.getUser(id: newUser.id!).wait()
@@ -54,7 +54,7 @@ class UserRepositoryTests: XCTestCase {
     
     func testGettingAUserByName() throws {
         let name = "Alice"
-        let newUser = FluentBlogUser(userID: nil, name: name, username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        let newUser = FluentBlogUser(userID: nil, name: name, username: "alice", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try newUser.save(on: app.db).wait()
 
         let retrievedUser = try repository.getUser(name: name).wait()
@@ -66,8 +66,8 @@ class UserRepositoryTests: XCTestCase {
     func testGettingAllUsers() throws {
         let name1 = "Alice"
         let name2 = "Bob"
-        try FluentBlogUser(userID: nil, name: name1, username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
-        try FluentBlogUser(userID: nil, name: name2, username: "bob", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        try FluentBlogUser(userID: nil, name: name1, username: "alice", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        try FluentBlogUser(userID: nil, name: name2, username: "bob", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
         
         let users = try repository.getAllUsers().wait()
 
@@ -77,8 +77,8 @@ class UserRepositoryTests: XCTestCase {
     }
     
     func testUsersCount() throws {
-        try FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
-        try FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        try FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        try FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
         
         let count = try repository.getUsersCount().wait()
         
@@ -101,9 +101,9 @@ class UserRepositoryTests: XCTestCase {
     func testCreatingUserWithExistingUsernameFails() throws {
         let username = "alice"
         var errorOccurred = false
-        try FluentBlogUser(userID: nil, name: "Alice", username: username, password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        try FluentBlogUser(userID: nil, name: "Alice", username: username, password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
         do {
-            try FluentBlogUser(userID: nil, name: "Bob", username: username, password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+            try FluentBlogUser(userID: nil, name: "Bob", username: username, password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
         } catch {
             errorOccurred = true
         }
@@ -112,11 +112,11 @@ class UserRepositoryTests: XCTestCase {
     }
     
     func testGettingUsersWithPostCounts() throws {
-        let postAuthor = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        let postAuthor = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try postAuthor.save(on: app.db).wait()
-        let otherUser = FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        let otherUser = FluentBlogUser(userID: nil, name: "Bob", username: "bob", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try otherUser.save(on: app.db).wait()
-        let newUser = FluentBlogUser(userID: nil, name: "Luke", username: "luke", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        let newUser = FluentBlogUser(userID: nil, name: "Luke", username: "luke", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try newUser.save(on: app.db).wait()
         
         try FluentBlogPost(id: nil, title: "A new post", contents: "Some Contents about vapor", author: postAuthor.requireID(), creationDate: Date().addingTimeInterval(-360), slugUrl: "a-new-post", published: true).save(on: app.db).wait()

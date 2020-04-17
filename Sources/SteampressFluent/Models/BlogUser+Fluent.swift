@@ -37,11 +37,12 @@ final class FluentBlogUser: Model {
     var posts: [FluentBlogPost]
     
     init() {}
-    init(userID: Int?, name: String, username: String, password: String, profilePicture: String?, twitterHandle: String?, biography: String?, tagline: String?) {
+    init(userID: Int?, name: String, username: String, password: String, resetPasswordRequired: Bool, profilePicture: String?, twitterHandle: String?, biography: String?, tagline: String?) {
         self.id = userID
         self.name = name
         self.username = username.lowercased()
         self.password = password
+        self.resetPasswordRequired = resetPasswordRequired
         self.profilePicture = profilePicture
         self.twitterHandle = twitterHandle
         self.biography = biography
@@ -51,13 +52,14 @@ final class FluentBlogUser: Model {
 
 extension FluentBlogUser {
     func toBlogUser() -> BlogUser {
-        BlogUser(userID: self.id, name: self.name, username: self.username, password: self.password, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
+        #warning("expose reset password required")
+        return BlogUser(userID: self.id, name: self.name, username: self.username, password: self.password, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
     }
 }
 
 extension BlogUser {
     func toFluentUser() -> FluentBlogUser {
-        FluentBlogUser(userID: self.userID, name: self.name, username: self.username, password: self.password, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
+        FluentBlogUser(userID: self.userID, name: self.name, username: self.username, password: self.password, resetPasswordRequired: self.resetPasswordRequired, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
     }
 }
 
