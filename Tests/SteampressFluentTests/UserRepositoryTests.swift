@@ -137,6 +137,7 @@ class UserRepositoryTests: XCTestCase {
     }
     
     func testAdminUserMigrationsCreatesAdminUser() throws {
+        app.shutdown()
         app = try TestSetup.getApp(enableAdminUser: true)
         let user = try XCTUnwrap(FluentBlogUser.query(on: app.db).first().wait())
         XCTAssertEqual(user.username, "admin")
