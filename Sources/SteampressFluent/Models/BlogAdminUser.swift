@@ -1,21 +1,20 @@
 import Fluent
-import Crypto
+import Vapor
 
-public struct BlogAdminUser: PostgreSQLMigration {
-    
-    public static func prepare(on conn: PostgreSQLConnection) -> EventLoopFuture<Void> {
+public struct BlogAdminUser: Migration {
+    public func prepare(on database: Database) -> EventLoopFuture<Void> {
         do {
             let password = try String.random()
-            print("Admin's password in \(password)")
-            let passwordHash = try BCrypt.hash(password)
-            let adminUser = BlogUser(name: "Admin", username: "admin", password: passwordHash, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
-            return adminUser.save(on: conn).transform(to: ())
+            database.logger.notice("Admin's password is \(password)")
+            let passwordHash = try BCryptDigest().hash(password)
+            let adminUser = FluentBlogUser(userID: nil, name: "Admin", username: "admin", password: passwordHash, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+            return adminUser.save(on: database)
         } catch {
-            return conn.future(error: SteamPressFluentError(message: "Failed to create admin user"))
+            return database.eventLoop.makeFailedFuture(error)
         }
     }
     
-    public static func revert(on conn: PostgreSQLConnection) -> EventLoopFuture<Void> {
-        return .done(on: conn)
+    public func revert(on database: Database) -> EventLoopFuture<Void> {
+        return database.eventLoop.future()
     }
 }
