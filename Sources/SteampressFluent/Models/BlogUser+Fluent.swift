@@ -52,8 +52,7 @@ final class FluentBlogUser: Model {
 
 extension FluentBlogUser {
     func toBlogUser() -> BlogUser {
-        #warning("expose reset password required")
-        return BlogUser(userID: self.id, name: self.name, username: self.username, password: self.password, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
+        return BlogUser(userID: self.id, name: self.name, username: self.username, password: self.password, resetPasswordRequired: self.resetPasswordRequired, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
     }
 }
 

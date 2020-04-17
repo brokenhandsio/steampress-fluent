@@ -6,16 +6,6 @@ import FluentMySQLDriver
 
 struct TestSetup {
     static func getApp(enableAdminUser: Bool = false) throws -> Application {
-//        var services = Services.default()
-//        try services.register(FluentPostgreSQLProvider())
-//
-//        var databases = DatabasesConfig()
-//
-//        let databaseConfig = PostgreSQLDatabaseConfig(hostname: hostname, port: databasePort, username: username, database: databaseName, password: password)
-//        let database = PostgreSQLDatabase(config: databaseConfig)
-//        databases.add(database: database, as: .psql)
-//        databases.enableLogging(on: .psql)
-//        services.register(databases)
         
         let app = Application(.testing)
         

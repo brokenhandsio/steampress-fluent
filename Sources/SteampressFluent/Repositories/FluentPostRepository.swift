@@ -81,7 +81,6 @@ struct FluentPostRepository: BlogPostRepository {
         return paginatedQuery.group(.or) { or in
             or.filter(\.$title, .custom("ilike"), "%\(searchTerm)%")
             or.filter(\.$contents, .custom("ilike"), "%\(searchTerm)%")
-//            or.filter(\.$contents, .ilike, "%\(searchTerm)%")
         }.all().map { $0.map { $0.toBlogPost() }}
     }
     
