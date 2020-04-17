@@ -24,20 +24,20 @@ class TagRepositoryTests: XCTestCase {
     
     func testSavingTag() throws {
         let newTag = BlogTag(name: "SteamPress")
-        let savedTag = try repository.save(newTag, on: app).wait()
+        let savedTag = try repository.save(newTag).wait()
         
         XCTAssertNotNil(savedTag.tagID)
         
-        let tagFromDB = try BlogTag.query(on: connection).filter(\.tagID == savedTag.tagID).first().wait()
+        let tagFromDB = try BlogTag.query(on: app.db).filter(\.tagID == savedTag.tagID).first().wait()
         XCTAssertEqual(tagFromDB?.name, newTag.name)
     }
     
     func testGetingATag() throws {
         let tagName = "Engineering"
         let tag = BlogTag(name: tagName)
-        _ = try tag.save(on: connection).wait()
+        _ = try tag.save(on: app.db).wait()
         
-        let retrievedTag = try repository.getTag(tagName, on: app).wait()
+        let retrievedTag = try repository.getTag(tagName).wait()
         
         XCTAssertEqual(retrievedTag?.name, tagName)
         XCTAssertEqual(retrievedTag?.tagID, tag.tagID)
@@ -46,8 +46,8 @@ class TagRepositoryTests: XCTestCase {
     func testGettingAllTags() throws {
         let tagName1 = "Engineering"
         let tagName2 = "SteamPress"
-        _ = try BlogTag(name: tagName1).save(on: connection).wait()
-        _ = try BlogTag(name: tagName2).save(on: connection).wait()
+        _ = try BlogTag(name: tagName1).save(on: app.db).wait()
+        _ = try BlogTag(name: tagName2).save(on: app.db).wait()
         
         let tags = try repository.getAllTags(on: app).wait()
         
@@ -59,9 +59,9 @@ class TagRepositoryTests: XCTestCase {
     func testErrorOccursWhenSavingATagWithNameThatAlreadyExists() throws {
         let tagName = "SteamPress"
         var errorOccurred = false
-        _ = try BlogTag(name: tagName).save(on: connection).wait()
+        _ = try BlogTag(name: tagName).save(on: app.db).wait()
         do {
-            _ = try BlogTag(name: tagName).save(on: connection).wait()
+            _ = try BlogTag(name: tagName).save(on: app.db).wait()
         } catch {
             errorOccurred = true
         }
@@ -70,102 +70,102 @@ class TagRepositoryTests: XCTestCase {
     }
     
     func testAddingTagToPost() throws {
-        let tag = try BlogTag(name: "SteamPress").save(on: connection).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
-        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
+        let tag = try BlogTag(name: "SteamPress").save(on: app.db).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
         
-        try repository.add(tag, to: post, on: app).wait()
+        try repository.add(tag, to: post).wait()
         
-        let tagLinks = try BlogPostTagPivot.query(on: connection).all().wait()
+        let tagLinks = try BlogPostTagPivot.query(on: app.db).all().wait()
         XCTAssertEqual(tagLinks.count, 1)
         XCTAssertEqual(tagLinks.first?.tagID, tag.tagID)
         XCTAssertEqual(tagLinks.first?.postID, post.blogID)
     }
     
     func testRemovingTagFromPost() throws {
-        let tag = try BlogTag(name: "SteamPress").save(on: connection).wait()
-        let tag2 = try BlogTag(name: "Testing").save(on: connection).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
-        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
-        _ = try post.tags.attach(tag, on: connection).wait()
-        _ = try post.tags.attach(tag2, on: connection).wait()
+        let tag = try BlogTag(name: "SteamPress").save(on: app.db).wait()
+        let tag2 = try BlogTag(name: "Testing").save(on: app.db).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
+        _ = try post.tags.attach(tag, on: app.db).wait()
+        _ = try post.tags.attach(tag2, on: app.db).wait()
         
-        try repository.remove(tag, from: post, on: app).wait()
+        try repository.remove(tag, from: post).wait()
         
-        let tagLinks = try BlogPostTagPivot.query(on: connection).all().wait()
+        let tagLinks = try BlogPostTagPivot.query(on: app.db).all().wait()
         XCTAssertEqual(tagLinks.count, 1)
         
-        let allTags = try BlogTag.query(on: connection).all().wait()
+        let allTags = try BlogTag.query(on: app.db).all().wait()
         XCTAssertEqual(allTags.count, 1)
         XCTAssertEqual(allTags.first?.name, tag2.name)
     }
     
     func testGettingTagsForPost() throws {
-        let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
-        let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
-        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
+        let tag1 = try BlogTag(name: "SteamPress").save(on: app.db).wait()
+        let tag2 = try BlogTag(name: "Engineering").save(on: app.db).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
         
-        _ = try post.tags.attach(tag1, on: connection).wait()
-        _ = try post.tags.attach(tag2, on: connection).wait()
+        _ = try post.tags.attach(tag1, on: app.db).wait()
+        _ = try post.tags.attach(tag2, on: app.db).wait()
         
-        let postTags =  try repository.getTags(for: post, on: app).wait()
+        let postTags =  try repository.getTags(for: post).wait()
         XCTAssertEqual(postTags.count, 2)
         XCTAssertEqual(postTags.first?.name, tag1.name)
         XCTAssertEqual(postTags.last?.name, tag2.name)
     }
     
     func testDeletingTagsForPost() throws {
-        let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
-        let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
-        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
+        let tag1 = try BlogTag(name: "SteamPress").save(on: app.db).wait()
+        let tag2 = try BlogTag(name: "Engineering").save(on: app.db).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
         
-        _ = try post.tags.attach(tag1, on: connection).wait()
-        _ = try post.tags.attach(tag2, on: connection).wait()
+        _ = try post.tags.attach(tag1, on: app.db).wait()
+        _ = try post.tags.attach(tag2, on: app.db).wait()
         
-        try repository.deleteTags(for: post, on: app).wait()
+        try repository.deleteTags(for: post).wait()
         
-        let tagCount = try BlogTag.query(on: connection).count().wait()
+        let tagCount = try BlogTag.query(on: app.db).count().wait()
         XCTAssertEqual(tagCount, 0)
         
-        let pivotCount = try BlogPostTagPivot.query(on: connection).count().wait()
+        let pivotCount = try BlogPostTagPivot.query(on: app.db).count().wait()
         XCTAssertEqual(pivotCount, 0)
     }
     
     func testDeletingTagsForPostDoesntDeleteTagIfItsAttachedToAnotherPost() throws {
-        let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
-        let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
-        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
-        let post2 = try BlogPost(title: "Another Post", contents: "Some other contents", author: user, creationDate: Date(), slugUrl: "another-post", published: true).save(on: connection).wait()
+        let tag1 = try BlogTag(name: "SteamPress").save(on: app.db).wait()
+        let tag2 = try BlogTag(name: "Engineering").save(on: app.db).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        let post = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
+        let post2 = try BlogPost(title: "Another Post", contents: "Some other contents", author: user, creationDate: Date(), slugUrl: "another-post", published: true).save(on: app.db).wait()
         
-        _ = try post.tags.attach(tag1, on: connection).wait()
-        _ = try post.tags.attach(tag2, on: connection).wait()
-        _ = try post2.tags.attach(tag2, on: connection).wait()
+        _ = try post.tags.attach(tag1, on: app.db).wait()
+        _ = try post.tags.attach(tag2, on: app.db).wait()
+        _ = try post2.tags.attach(tag2, on: app.db).wait()
         
-        try repository.deleteTags(for: post, on: app).wait()
+        try repository.deleteTags(for: post).wait()
         
-        let tagCount = try BlogTag.query(on: connection).count().wait()
+        let tagCount = try BlogTag.query(on: app.db).count().wait()
         XCTAssertEqual(tagCount, 1)
         
-        let pivotCount = try BlogPostTagPivot.query(on: connection).count().wait()
+        let pivotCount = try BlogPostTagPivot.query(on: app.db).count().wait()
         XCTAssertEqual(pivotCount, 1)
     }
     
     func testGettingAllTagsWithPostCount() throws {
-        let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
-        let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
-        let post1 = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
-        let post2 = try BlogPost(title: "A Second Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-second-post", published: true).save(on: connection).wait()
-        let post3 = try BlogPost(title: "A Third Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-third-post", published: true).save(on: connection).wait()
+        let tag1 = try BlogTag(name: "SteamPress").save(on: app.db).wait()
+        let tag2 = try BlogTag(name: "Engineering").save(on: app.db).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        let post1 = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
+        let post2 = try BlogPost(title: "A Second Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-second-post", published: true).save(on: app.db).wait()
+        let post3 = try BlogPost(title: "A Third Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-third-post", published: true).save(on: app.db).wait()
         
-        _ = try post1.tags.attach(tag1, on: connection).wait()
-        _ = try post2.tags.attach(tag2, on: connection).wait()
-        _ = try post3.tags.attach(tag1, on: connection).wait()
+        _ = try post1.tags.attach(tag1, on: app.db).wait()
+        _ = try post2.tags.attach(tag2, on: app.db).wait()
+        _ = try post3.tags.attach(tag1, on: app.db).wait()
         
-        let tagsWithPostCount = try repository.getAllTagsWithPostCount(on: app).wait()
+        let tagsWithPostCount = try repository.getAllTagsWithPostCount().wait()
         
         XCTAssertEqual(tagsWithPostCount.count, 2)
         XCTAssertEqual(tagsWithPostCount.first?.0.name, tag1.name)
@@ -175,18 +175,18 @@ class TagRepositoryTests: XCTestCase {
     }
     
     func testGettingAllTagsWithPostID() throws {
-        let tag1 = try BlogTag(name: "SteamPress").save(on: connection).wait()
-        let tag2 = try BlogTag(name: "Engineering").save(on: connection).wait()
-        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
-        let post1 = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: connection).wait()
-        let post2 = try BlogPost(title: "A Second Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-second-post", published: true).save(on: connection).wait()
-        let post3 = try BlogPost(title: "A Third Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-third-post", published: true).save(on: connection).wait()
+        let tag1 = try BlogTag(name: "SteamPress").save(on: app.db).wait()
+        let tag2 = try BlogTag(name: "Engineering").save(on: app.db).wait()
+        let user = try BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: app.db).wait()
+        let post1 = try BlogPost(title: "A Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-post", published: true).save(on: app.db).wait()
+        let post2 = try BlogPost(title: "A Second Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-second-post", published: true).save(on: app.db).wait()
+        let post3 = try BlogPost(title: "A Third Post", contents: "Some contents", author: user, creationDate: Date(), slugUrl: "a-third-post", published: true).save(on: app.db).wait()
         
-        _ = try post1.tags.attach(tag1, on: connection).wait()
-        _ = try post2.tags.attach(tag2, on: connection).wait()
-        _ = try post3.tags.attach(tag1, on: connection).wait()
+        _ = try post1.tags.attach(tag1, on: app.db).wait()
+        _ = try post2.tags.attach(tag2, on: app.db).wait()
+        _ = try post3.tags.attach(tag1, on: app.db).wait()
         
-        let tagsWithPosts = try repository.getTagsForAllPosts(on: app).wait()
+        let tagsWithPosts = try repository.getTagsForAllPosts().wait()
         
         XCTAssertEqual(tagsWithPosts[post1.blogID!]?.count, 1)
         XCTAssertEqual(tagsWithPosts[post1.blogID!]?.first?.name, tag1.name)
