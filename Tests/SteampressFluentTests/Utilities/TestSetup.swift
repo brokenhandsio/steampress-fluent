@@ -48,7 +48,7 @@ struct TestSetup {
             print("Error running migrations \(error)")
         }
         
-        app.steampressFluent.database = .postgres
+        app.steampress.fluent.database = .postgres
         try app.boot()
         return app
     }

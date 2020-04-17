@@ -54,9 +54,9 @@ public enum SteamPressFluentDatabase {
     case undefined
 }
 
-extension Application {
-    public var steampressFluent: Application.SteamPressFluent {
-        .init(application: self, lifecycleHandler: SteampressFluentLifecycleHandler())
+extension Application.SteamPress {
+    public var fluent: Application.SteamPressFluent {
+        .init(application: self.application, lifecycleHandler: SteampressFluentLifecycleHandler())
     }
 }
 
