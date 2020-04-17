@@ -1,10 +1,10 @@
 import SteamPress
 import Fluent
 
-public final class BlogPostTagPivot: PostgreSQLUUIDModel, ModifiablePivot {
+public final class BlogPostTagPivot: ModifiablePivot {
     public var id: UUID?
-    public var postID: BlogPost.ID
-    public var tagID: BlogTag.ID
+    public var postID: FluentBlogPost.ID
+    public var tagID: FluentBlogTag.ID
     
     public typealias Left = BlogPost
     public typealias Right = BlogTag
@@ -17,14 +17,14 @@ public final class BlogPostTagPivot: PostgreSQLUUIDModel, ModifiablePivot {
     }
 }
 
-extension BlogPostTagPivot: Migration {
-    public static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
-        Database.create(BlogPostTagPivot.self, on: connection) { builder in
-            builder.field(for: \.id, isIdentifier: true)
-            builder.field(for: \.postID)
-            builder.field(for: \.tagID)
-            builder.reference(from: \.postID, to: \BlogPost.blogID, onDelete: .cascade)
-            builder.reference(from: \.tagID, to: \BlogTag.tagID, onDelete: .cascade)
-        }
-    }
-}
+//extension BlogPostTagPivot: Migration {
+//    public static func prepare(on connection: PostgreSQLConnection) -> EventLoopFuture<Void> {
+//        Database.create(BlogPostTagPivot.self, on: connection) { builder in
+//            builder.field(for: \.id, isIdentifier: true)
+//            builder.field(for: \.postID)
+//            builder.field(for: \.tagID)
+//            builder.reference(from: \.postID, to: \BlogPost.blogID, onDelete: .cascade)
+//            builder.reference(from: \.tagID, to: \BlogTag.tagID, onDelete: .cascade)
+//        }
+//    }
+//}

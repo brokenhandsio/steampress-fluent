@@ -24,7 +24,7 @@ struct FluentPostRepository: BlogPostRepository {
             query.filter(\.$published == true)
         }
         let upperLimit = count + offset
-        return query.range(offset..<upperLimit).all()
+        return query.range(offset..<upperLimit).all().map { $0.map { $0.toBlogPost() }}
     }
     
     func getAllPostsCount(includeDrafts: Bool) -> EventLoopFuture<Int> {
@@ -49,11 +49,11 @@ struct FluentPostRepository: BlogPostRepository {
     }
     
     func getPost(slug: String) -> EventLoopFuture<BlogPost?> {
-        FluemtBlogPost.query(on: database).filter(\.$slugUrl == slug).first()
+        FluentBlogPost.query(on: database).filter(\.$slugUrl == slug).first().map { $0?.toBlogPost() }
     }
     
     func getPost(id: Int) -> EventLoopFuture<BlogPost?> {
-        FluentBlogPost.query(on: database).filter(\.$blogID == id).first()
+        FluentBlogPost.query(on: database).filter(\.$id == id).first().map { $0?.toBlogPost() }
     }
     
     func getSortedPublishedPosts(for tag: BlogTag, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
@@ -75,7 +75,7 @@ struct FluentPostRepository: BlogPostRepository {
         return paginatedQuery.group(.or) { or in
             or.filter(\.$title, .ilike, "%\(searchTerm)%")
             or.filter(\.$contents, .ilike, "%\(searchTerm)%")
-        }.all()
+        }.all().map { $0.map { $0.toBlogPost() }}
     }
     
     func getPublishedPostCount(for searchTerm: String) -> EventLoopFuture<Int> {
