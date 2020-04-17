@@ -1,6 +1,6 @@
 import Vapor
-import FluentPostgreSQL
-import SteampressFluentPostgres
+import Fluent
+import SteampressFluent
 
 struct TestSetup {
     static func getApp(enableAdminUser: Bool = false) throws -> Application {

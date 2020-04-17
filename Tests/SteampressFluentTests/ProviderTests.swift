@@ -1,7 +1,6 @@
-@testable import SteampressFluentPostgres
+@testable import SteampressFluent
 import XCTest
 import Vapor
-import FluentPostgreSQL
 
 class ProviderTests: XCTestCase {
     func testProviderSetsUpSteamPressAndRepositoriesCorrectly() throws {

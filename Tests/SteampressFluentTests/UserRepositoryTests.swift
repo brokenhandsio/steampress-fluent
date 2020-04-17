@@ -1,6 +1,5 @@
 import XCTest
-@testable import SteampressFluentPostgres
-import FluentPostgreSQL
+@testable import SteampressFluent
 import Vapor
 import Fluent
 
