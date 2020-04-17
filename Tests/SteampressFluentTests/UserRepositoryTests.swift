@@ -86,13 +86,13 @@ class UserRepositoryTests: XCTestCase {
     }
     
     func testDeletingAUser() throws {
-        let user = BlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
-        try user.toFluentUser().save(on: app.db).wait()
+        let user = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        try user.save(on: app.db).wait()
         
         let count = try FluentBlogUser.query(on: app.db).count().wait()
         XCTAssertEqual(count, 1)
         
-        try repository.delete(user).wait()
+        try repository.delete(user.toBlogUser()).wait()
         
         let countAfterDelete = try FluentBlogUser.query(on: app.db).count().wait()
         XCTAssertEqual(countAfterDelete, 0)

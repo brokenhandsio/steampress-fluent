@@ -101,7 +101,9 @@ struct FluentTagRepository: BlogTagRepository {
     
     func add(_ tag: BlogTag, to post: BlogPost) -> EventLoopFuture<Void> {
         let fluentPost = post.toFluentPost()
+        fluentPost.$id.exists = true
         let fluentTag = tag.toFluentBlogTag()
+        fluentTag.$id.exists = true
         return fluentPost.$tags.attach(fluentTag, on: database).transform(to: ())
     }
     
