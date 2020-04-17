@@ -71,12 +71,12 @@ final class FluentBlogUser: Model {
 
 extension FluentBlogUser {
     func toBlogUser() -> BlogUser {
-        return BlogUser(userID: self.id, name: self.name, username: self.username, password: self.password, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
+        BlogUser(userID: self.id, name: self.name, username: self.username, password: self.password, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
     }
 }
 
 extension BlogUser {
     func toFluentUser() -> FluentBlogUser {
-        return FluentBlogUser(userID: self.userID, name: self.name, username: self.username, password: self.password, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
+        FluentBlogUser(userID: self.userID, name: self.name, username: self.username, password: self.password, profilePicture: self.profilePicture, twitterHandle: self.twitterHandle, biography: self.biography, tagline: self.tagline)
     }
 }
