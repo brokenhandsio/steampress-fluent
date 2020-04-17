@@ -7,18 +7,17 @@ class TagRepositoryTests: XCTestCase {
     
     // MARK: - Properties
     var app: Application!
-    var connection: PostgreSQLConnection!
-    var repository = FluentPostgresTagRepository()
+    var repository: FluentTagRepository!
     
     // MARK: - Overrides
     
-    override func setUp() {
+    override func setUpWithError() throws {
         app = try! TestSetup.getApp()
-        connection = try! app.requestPooledConnection(to: .psql).wait()
+        repository = FluentTagRepository(database: app.db)
     }
     
-    override func tearDown() {
-        try! app.releasePooledConnection(connection, to: .psql)
+    override func tearDownWithError() throws {
+        app.shutdown()
     }
     
     // MARK: - Tests

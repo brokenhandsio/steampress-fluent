@@ -7,20 +7,20 @@ class PostRepositoryTests: XCTestCase {
     
     // MARK: - Properties
     var app: Application!
-    var connection: PostgreSQLConnection!
-    var repository = FluentPostgresPostRepository()
-    var postAuthor: BlogUser!
+    var repository: FluentPostRepository!
+    var postAuthor: FluentBlogUser!
     
     // MARK: - Overrides
     
-    override func setUp() {
-        app = try! TestSetup.getApp()
-        connection = try! app.requestPooledConnection(to: .psql).wait()
-        postAuthor = try! BlogUser(name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil).save(on: connection).wait()
+    override func setUpWithError() throws {
+        app = try TestSetup.getApp()
+        repository = FluentPostRepository(database: app.db)
+        postAuthor = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
+        try postAuthor.save(on: app.db).wait()
     }
     
-    override func tearDown() {
-        try! app.releasePooledConnection(connection, to: .psql)
+    override func tearDownWithError() throws {
+        app.shutdown()
     }
     
     // MARK: - Tests
