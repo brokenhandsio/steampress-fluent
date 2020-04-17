@@ -36,8 +36,10 @@ struct FluentPostRepository: BlogPostRepository {
     }
     
     func getAllPostsSortedByPublishDate(for user: BlogUser, includeDrafts: Bool, count: Int, offset: Int) -> EventLoopFuture<[BlogPost]> {
-        let fluentUser = user.toFluentUser()
-        let query = fluentUser.$posts.query(on: database).sort(\.$created, .descending)
+        guard let authorID = user.userID else {
+            return database.eventLoop.makeFailedFuture(FluentError.idRequired)
+        }
+        let query = FluentBlogPost.query(on: database).filter(\.$author.$id == authorID).sort(\.$created, .descending)
         if !includeDrafts {
             query.filter(\.$published == true)
         }
@@ -77,17 +79,16 @@ struct FluentPostRepository: BlogPostRepository {
         let paginatedQuery = query.range(offset..<upperLimit)
         
         return paginatedQuery.group(.or) { or in
-            #warning("TODO")
-//            or.filter(\.$title, .ilike, "%\(searchTerm)%")
+            or.filter(\.$title, .custom("ilike"), "%\(searchTerm)%")
+            or.filter(\.$contents, .custom("ilike"), "%\(searchTerm)%")
 //            or.filter(\.$contents, .ilike, "%\(searchTerm)%")
         }.all().map { $0.map { $0.toBlogPost() }}
     }
     
     func getPublishedPostCount(for searchTerm: String) -> EventLoopFuture<Int> {
         FluentBlogPost.query(on: database).filter(\.$published == true).group(.or) { or in
-            #warning("TODO")
-//            or.filter(\.$title, .ilike, "%\(searchTerm)%")
-//            or.filter(\.$contents, .ilike, "%\(searchTerm)%")
+            or.filter(\.$title, .custom("ilike"), "%\(searchTerm)%")
+            or.filter(\.$contents, .custom("ilike"), "%\(searchTerm)%")
         }.count()
     }
     

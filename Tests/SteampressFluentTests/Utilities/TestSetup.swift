@@ -41,6 +41,7 @@ struct TestSetup {
             password: password,
             database: databaseName
         ), as: .psql)
+        app.logger.logLevel = .trace
         
         app.migrations.add(CreateBlogUser())
         app.migrations.add(CreateBlogPost())
