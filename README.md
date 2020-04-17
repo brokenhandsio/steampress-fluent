@@ -5,18 +5,18 @@
     <a href="https://swift.org">
         <img src="http://img.shields.io/badge/Swift-5.1-brightgreen.svg" alt="Language">
     </a>
-    <a href="https://github.com/brokenhandsio/steampress-fluent-postgres/actions">
-        <img src="https://github.com/brokenhandsio/steampress-fluent-postgres/workflows/CI/badge.svg?branch=master" alt="Build Status">
+    <a href="https://github.com/brokenhandsio/steampress-fluent/actions">
+        <img src="https://github.com/brokenhandsio/steampress-fluent/workflows/CI/badge.svg?branch=master" alt="Build Status">
     </a>
-    <a href="https://codecov.io/gh/brokenhandsio/steampress-fluent-postgres">
-        <img src="https://codecov.io/gh/brokenhandsio/steampress-fluent-postgres/branch/master/graph/badge.svg" alt="Code Coverage">
+    <a href="https://codecov.io/gh/brokenhandsio/steampress-fluent">
+        <img src="https://codecov.io/gh/brokenhandsio/steampress-fluent/branch/master/graph/badge.svg" alt="Code Coverage">
     </a>
-    <a href="https://raw.githubusercontent.com/brokenhandsio/steampress-fluent-postgres/master/LICENSE">
+    <a href="https://raw.githubusercontent.com/brokenhandsio/steampress-fluent/master/LICENSE">
         <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License">
     </a>
 </p>
 
-Steampress Fluent Postgres provides Fluent PostgreSQL adapters for SteamPress to allow you to use SteamPress with a PostgreSQL database.
+Steampress Fluent provides Fluent adapters for SteamPress to allow you to use SteamPress with a PostgreSQL or MySQL database.
 
 # Usage:
 
@@ -25,7 +25,7 @@ Add the package to your **Package.swift** dependencies:
 ```swift
 dependencies: [
     ...,
-    .package(name: "SteampressFluentPostgres", url: "https://github.com/brokenhandsio/steampress-fluent-postgres.git", from: "1.0.0"),
+    .package(name: "SteampressFluent", url: "https://github.com/brokenhandsio/steampress-fluent.git", from: "1.0.0"),
 ]
 ```
 
