@@ -12,5 +12,7 @@ class ProviderTests: XCTestCase {
         XCTAssertTrue(type(of: tagRepository) == FluentTagRepository.self)
         let userRepository = app.steampress.blogRepositories.userRepository
         XCTAssertTrue(type(of: userRepository) == FluentUserRepository.self)
+        
+        app.shutdown()
     }
 }
