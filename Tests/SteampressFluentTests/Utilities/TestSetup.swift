@@ -1,6 +1,8 @@
 import Vapor
 import Fluent
 import SteampressFluent
+import FluentPostgresDriver
+import FluentMySQLDriver
 
 struct TestSetup {
     static func getApp(enableAdminUser: Bool = false) throws -> Application {

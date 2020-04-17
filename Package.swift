@@ -15,7 +15,9 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
          .package(url: "https://github.com/brokenhandsio/SteamPress.git", from: "2.0.0-beta"),
-         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0-rc")
+         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0-rc"),
+         .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0-beta"),
+         .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0-beta"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -28,6 +30,10 @@ let package = Package(
             ]),
         .testTarget(
             name: "SteampressFluentTests",
-            dependencies: ["SteampressFluent"]),
+            dependencies: [
+                "SteampressFluent",
+                .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
+                .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver")
+            ]),
     ]
 )
