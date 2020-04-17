@@ -66,6 +66,9 @@ extension BlogPost {
 }
 
 public struct CreateBlogPost: Migration {
+    
+    public init() {}
+    
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         database.schema("BlogPost")
             .id()

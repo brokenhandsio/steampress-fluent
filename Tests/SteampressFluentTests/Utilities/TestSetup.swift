@@ -28,31 +28,22 @@ struct TestSetup {
 //        databases.add(database: database, as: .psql)
 //        databases.enableLogging(on: .psql)
 //        services.register(databases)
-//
-//        /// Configure migrations
-//        var migrations = MigrationConfig()
-//        migrations.add(model: BlogTag.self, database: .psql)
-//        migrations.add(model: BlogUser.self, database: .psql)
-//        migrations.add(model: BlogPost.self, database: .psql)
-//        migrations.add(model: BlogPostTagPivot.self, database: .psql)
-//        if enableAdminUser {
-//            migrations.add(migration: BlogAdminUser.self, database: .psql)
-//        }
-//        services.register(migrations)
-//
-//        let config = Config.default()
-//
-//        var commandConfig = CommandConfig.default()
-//        commandConfig.useFluentCommands()
-//        services.register(commandConfig)
-//
-//        var revertEnv = Environment.testing
-//        revertEnv.arguments = ["vapor", "revert", "--all", "-y"]
-//        _ = try Application(environment: revertEnv, services: services).asyncRun().wait()
-//
-//        let app = try Application(config: config, services: services)
-//        return app
+        
         let app = Application(.testing)
+        
+        
+        
+        app.migrations.add(CreateBlogUser())
+        app.migrations.add(CreateBlogPost())
+        app.migrations.add(CreateBlogTag())
+        app.migrations.add(CreatePostTagPivot())
+        if enableAdminUser {
+            app.migrations.add(BlogAdminUser())
+        }
+        
+        try app.autoRevert().wait()
+        try app.autoMigrate().wait()
+        
         return app
     }
 }

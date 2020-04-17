@@ -2,6 +2,9 @@ import Fluent
 import Vapor
 
 public struct BlogAdminUser: Migration {
+    
+    public init() {}
+    
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         do {
             let password = try String.random()

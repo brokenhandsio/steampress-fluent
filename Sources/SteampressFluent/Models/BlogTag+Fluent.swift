@@ -23,6 +23,8 @@ final class FluentBlogTag: Model {
 
 public struct CreateBlogTag: Migration {
     
+    public init() {}
+    
     #warning("Match name to old migration")
     
     public func prepare(on database: Database) -> EventLoopFuture<Void> {

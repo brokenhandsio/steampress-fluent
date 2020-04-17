@@ -62,6 +62,11 @@ extension BlogUser {
 }
 
 public struct CreateBlogUser: Migration {
+    
+    public init() {}
+    
+    #warning("Match name from old migration")
+    
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         database.schema("BlogUser")
             .id()
