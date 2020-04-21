@@ -53,7 +53,11 @@ struct FluentTagRepository: BlogTagRepository {
         guard let postID = post.blogID else {
             return database.eventLoop.makeFailedFuture(FluentError.idRequired)
         }
-        return FluentBlogTag.query(on: database).join(BlogPostTagPivot.self, on: \FluentBlogTag.$id == \BlogPostTagPivot.$tag.$id).filter(BlogPostTagPivot.self, \BlogPostTagPivot.$post.$id == postID).all().map { fluentTags in
+        return FluentBlogTag.query(on: database)
+            .join(BlogPostTagPivot.self, on: \FluentBlogTag.$id == \BlogPostTagPivot.$tag.$id)
+            .filter(BlogPostTagPivot.self, \BlogPostTagPivot.$post.$id == postID)
+            .sort(\.$name)
+            .all().map { fluentTags in
             fluentTags.map { $0.toBlogTag() }
         }
     }

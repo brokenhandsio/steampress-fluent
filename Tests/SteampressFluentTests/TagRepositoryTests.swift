@@ -123,8 +123,8 @@ class TagRepositoryTests: XCTestCase {
         
         let postTags =  try repository.getTags(for: post.toBlogPost()).wait()
         XCTAssertEqual(postTags.count, 2)
-        XCTAssertEqual(postTags.first?.name, tag1.name)
-        XCTAssertEqual(postTags.last?.name, tag2.name)
+        XCTAssertEqual(postTags.first?.name, tag2.name)
+        XCTAssertEqual(postTags.last?.name, tag1.name)
     }
     
     func testDeletingTagsForPost() throws {
