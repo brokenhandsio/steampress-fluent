@@ -22,15 +22,30 @@ struct TestSetup {
         if let envPort = Environment.get("DB_PORT"), let envPortInt = Int(envPort) {
             databasePort = envPortInt
         } else {
-            databasePort = 5433
+            if Environment.get("MYSQL_TEST") != nil {
+                databasePort = 3307
+            } else {
+                databasePort = 5433
+            }
         }
-        app.databases.use(.postgres(
-            hostname: hostname,
-            port: databasePort,
-            username: username,
-            password: password,
-            database: databaseName
-        ), as: .psql)
+        
+        if Environment.get("MYSQL_TEST") != nil {
+            app.databases.use(.mysql(
+                hostname: hostname,
+                port: databasePort,
+                username: username,
+                password: password,
+                database: databaseName
+                ), as: .mysql)
+        } else {
+            app.databases.use(.postgres(
+                hostname: hostname,
+                port: databasePort,
+                username: username,
+                password: password,
+                database: databaseName
+            ), as: .psql)
+        }
         app.logger.logLevel = .trace
         
         app.migrations.add(CreateBlogUser())
@@ -48,7 +63,11 @@ struct TestSetup {
             print("Error running migrations \(error)")
         }
         
-        app.steampress.fluent.database = .postgres
+        if Environment.get("MYSQL_TEST") != nil {
+            app.steampress.fluent.database = .postgres
+        } else {
+            app.steampress.fluent.database = .mysql
+        }
         try app.boot()
         return app
     }
