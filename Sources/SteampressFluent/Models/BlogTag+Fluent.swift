@@ -25,7 +25,7 @@ public struct CreateBlogTag: Migration {
     
     public init() {}
     
-    #warning("Match name to old migration")
+    public let name = "BlogTag"
     
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         database.schema("BlogTag")

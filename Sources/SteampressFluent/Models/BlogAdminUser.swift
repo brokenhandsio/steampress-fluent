@@ -5,6 +5,8 @@ public struct BlogAdminUser: Migration {
     
     public init() {}
     
+    public let name = "BlogAdminUser"
+    
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         do {
             let password = try String.random()

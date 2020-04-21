@@ -4,7 +4,6 @@ import Foundation
 
 final class BlogPostTagPivot: Model {
     
-    #warning("Check this")
     static let schema = "BlogPost_BlogTag"
     
     @ID(key: .id)
@@ -26,11 +25,10 @@ final class BlogPostTagPivot: Model {
 public struct CreatePostTagPivot: Migration {
     
     public init() {}
-    
-    #warning("Match name to old migration")
+  
+    public let name = "BlogPostTagPivot"
     
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
-        #warning("Check name")
         return database.schema("BlogPost_BlogTag")
             .id()
             .field("postID", .int, .required, .references("BlogPost", "postID", onDelete: .cascade))
@@ -39,7 +37,6 @@ public struct CreatePostTagPivot: Migration {
     }
     
     public func revert(on database: Database) -> EventLoopFuture<Void> {
-        #warning("Check name")
         return database.schema("BlogPost_BlogTag").delete()
     }
 }

@@ -69,6 +69,8 @@ public struct CreateBlogPost: Migration {
     
     public init() {}
     
+    public let name = "BlogPost"
+    
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         database.schema("BlogPost")
             .field("postID", .int, .identifier(auto: true))

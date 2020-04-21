@@ -66,7 +66,7 @@ public struct CreateBlogUser: Migration {
     
     public init() {}
     
-    #warning("Match name from old migration")
+    public let name = "BlogUser"
     
     public func prepare(on database: Database) -> EventLoopFuture<Void> {
         database.schema("BlogUser")
