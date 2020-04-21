@@ -5,9 +5,10 @@ import Vapor
 struct FluentPostRepository: BlogPostRepository {
     
     let database: Database
+    let databaseType: SteamPressFluentDatabase
     
     func `for`(_ request: Request) -> BlogPostRepository {
-        return FluentPostRepository(database: request.db)
+        return FluentPostRepository(database: request.db, databaseType: request.application.steampress.fluent.database)
     }
     
     func getAllPostsSortedByPublishDate(includeDrafts: Bool) -> EventLoopFuture<[BlogPost]> {
@@ -84,16 +85,30 @@ struct FluentPostRepository: BlogPostRepository {
         let upperLimit = count + offset
         let paginatedQuery = query.range(offset..<upperLimit)
         
+        let ilikeOperator: String
+        if databaseType == .mysql {
+            ilikeOperator = "like"
+        } else {
+            ilikeOperator = "like"
+        }
+        
         return paginatedQuery.group(.or) { or in
-            or.filter(\.$title, .custom("ilike"), "%\(searchTerm)%")
-            or.filter(\.$contents, .custom("ilike"), "%\(searchTerm)%")
+            or.filter(\.$title, .custom(ilikeOperator), "%\(searchTerm)%")
+            or.filter(\.$contents, .custom(ilikeOperator), "%\(searchTerm)%")
         }.all().map { $0.map { $0.toBlogPost() }}
     }
     
     func getPublishedPostCount(for searchTerm: String) -> EventLoopFuture<Int> {
-        FluentBlogPost.query(on: database).filter(\.$published == true).group(.or) { or in
-            or.filter(\.$title, .custom("ilike"), "%\(searchTerm)%")
-            or.filter(\.$contents, .custom("ilike"), "%\(searchTerm)%")
+        let ilikeOperator: String
+        if databaseType == .mysql {
+            ilikeOperator = "like"
+        } else {
+            ilikeOperator = "like"
+        }
+        
+        return FluentBlogPost.query(on: database).filter(\.$published == true).group(.or) { or in
+            or.filter(\.$title, .custom(ilikeOperator), "%\(searchTerm)%")
+            or.filter(\.$contents, .custom(ilikeOperator), "%\(searchTerm)%")
         }.count()
     }
     

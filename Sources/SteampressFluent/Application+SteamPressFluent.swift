@@ -69,7 +69,7 @@ struct SteampressFluentLifecycleHandler: LifecycleHandler {
             return FluentTagRepository(database: application.db, databaseType: application.steampress.fluent.database)
         }
         application.steampress.blogRepositories.use { (application) -> BlogPostRepository in
-            return FluentPostRepository(database: application.db)
+            return FluentPostRepository(database: application.db, databaseType: application.steampress.fluent.database)
         }
     }
 }

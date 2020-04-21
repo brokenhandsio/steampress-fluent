@@ -14,7 +14,7 @@ class PostRepositoryTests: XCTestCase {
     
     override func setUpWithError() throws {
         app = try TestSetup.getApp()
-        repository = FluentPostRepository(database: app.db)
+        repository = FluentPostRepository(database: app.db, databaseType: app.steampress.fluent.database)
         postAuthor = FluentBlogUser(userID: nil, name: "Alice", username: "alice", password: "password", resetPasswordRequired: false, profilePicture: nil, twitterHandle: nil, biography: nil, tagline: nil)
         try postAuthor.save(on: app.db).wait()
     }
