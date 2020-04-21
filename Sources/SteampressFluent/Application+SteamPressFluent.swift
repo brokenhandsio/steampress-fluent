@@ -46,7 +46,7 @@ extension Application {
     }
 }
 
-public enum SteamPressFluentDatabase {
+public enum SteamPressFluentDatabase: Equatable {
     case mysql
     case postgres
     case mongo
@@ -66,7 +66,7 @@ struct SteampressFluentLifecycleHandler: LifecycleHandler {
             return FluentUserRepository(database: application.db)
         }
         application.steampress.blogRepositories.use { (application) -> BlogTagRepository in
-            return FluentTagRepository(database: application.db)
+            return FluentTagRepository(database: application.db, databaseType: application.steampress.fluent.database)
         }
         application.steampress.blogRepositories.use { (application) -> BlogPostRepository in
             return FluentPostRepository(database: application.db)

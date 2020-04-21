@@ -5,9 +5,10 @@ import Vapor
 struct FluentTagRepository: BlogTagRepository {
     
     let database: Database
+    let databaseType: SteamPressFluentDatabase
     
     func `for`(_ request: Request) -> BlogTagRepository {
-        return FluentTagRepository(database: request.db)
+        return FluentTagRepository(database: request.db, databaseType: request.application.steampress.fluent.database)
     }
     
     func getAllTags() -> EventLoopFuture<[BlogTag]> {
@@ -18,6 +19,11 @@ struct FluentTagRepository: BlogTagRepository {
         let allTagsQuery = FluentBlogTag.query(on: database).all()
         let allPivotsQuery = BlogPostTagPivot.query(on: database).all()
         return allTagsQuery.and(allPivotsQuery).flatMapThrowing { tags, pivots in
+            var tags = tags
+            if self.databaseType == .mysql {
+                tags.reverse()
+            }
+            
             return try tags.map { tag in
                 let postCount = try pivots.filter { try $0.$tag.id == tag.requireID() }.count
                 return (tag.toBlogTag(), postCount)

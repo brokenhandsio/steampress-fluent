@@ -13,7 +13,8 @@ class TagRepositoryTests: XCTestCase {
     
     override func setUpWithError() throws {
         app = try! TestSetup.getApp()
-        repository = FluentTagRepository(database: app.db)
+        let databaseType = TestSetup.getDatabaseType()
+        repository = FluentTagRepository(database: app.db, databaseType: databaseType)
     }
     
     override func tearDownWithError() throws {

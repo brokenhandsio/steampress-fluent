@@ -8,6 +8,7 @@ struct TestSetup {
     static func getApp(enableAdminUser: Bool = false) throws -> Application {
         
         let app = Application(.testing)
+        let databaseType = TestSetup.getDatabaseType()
         
         let hostname: String
         if let envHostname = Environment.get("DB_HOSTNAME") {
@@ -22,20 +23,21 @@ struct TestSetup {
         if let envPort = Environment.get("DB_PORT"), let envPortInt = Int(envPort) {
             databasePort = envPortInt
         } else {
-            if Environment.get("MYSQL_TEST") != nil {
+            if databaseType == .mysql {
                 databasePort = 3307
             } else {
                 databasePort = 5433
             }
         }
         
-        if Environment.get("MYSQL_TEST") != nil {
+        if databaseType == .mysql {
             app.databases.use(.mysql(
                 hostname: hostname,
                 port: databasePort,
                 username: username,
                 password: password,
-                database: databaseName
+                database: databaseName,
+                tlsConfiguration: .none
                 ), as: .mysql)
         } else {
             app.databases.use(.postgres(
@@ -63,12 +65,20 @@ struct TestSetup {
             print("Error running migrations \(error)")
         }
         
-        if Environment.get("MYSQL_TEST") != nil {
+        if databaseType == .mysql {
             app.steampress.fluent.database = .postgres
         } else {
             app.steampress.fluent.database = .mysql
         }
         try app.boot()
         return app
+    }
+    
+    static func getDatabaseType() -> SteamPressFluentDatabase {
+        if Environment.get("MYSQL_TEST") != nil {
+            return .mysql
+        } else {
+            return .postgres
+        }
     }
 }
