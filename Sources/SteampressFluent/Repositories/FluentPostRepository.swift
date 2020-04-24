@@ -89,7 +89,7 @@ struct FluentPostRepository: BlogPostRepository {
         if databaseType == .mysql {
             ilikeOperator = "like"
         } else {
-            ilikeOperator = "like"
+            ilikeOperator = "ilike"
         }
         
         return paginatedQuery.group(.or) { or in
@@ -103,7 +103,7 @@ struct FluentPostRepository: BlogPostRepository {
         if databaseType == .mysql {
             ilikeOperator = "like"
         } else {
-            ilikeOperator = "like"
+            ilikeOperator = "ilike"
         }
         
         return FluentBlogPost.query(on: database).filter(\.$published == true).group(.or) { or in

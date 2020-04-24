@@ -66,9 +66,9 @@ struct TestSetup {
         }
         
         if databaseType == .mysql {
-            app.steampress.fluent.database = .postgres
-        } else {
             app.steampress.fluent.database = .mysql
+        } else {
+            app.steampress.fluent.database = .postgres
         }
         try app.boot()
         return app
