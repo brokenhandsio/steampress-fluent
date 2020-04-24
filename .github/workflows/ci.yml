@@ -50,3 +50,40 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_UPLOAD_KEY }}
         file: coverage.txt
+  xenial-mysql:
+    container:
+      image: vapor/swift:5.2-xenial
+    services:
+      mysql:
+        image: mysql
+        env:
+          MYSQL_USER: steampress
+          MYSQL_DATABASE: steampress-test
+          MYSQL_PASSWORD: password
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - run: swift test --enable-test-discovery --sanitize=thread
+      env:
+        DB_HOSTNAME: mysql
+        DB_PORT: 3306
+        MYSQL_TEST: true
+  bionic-mysql:
+    container:
+      image: vapor/swift:5.2-bionic
+    services:
+      mysql:
+        image: mysql
+        env:
+          MYSQL_USER: steampress
+          MYSQL_DATABASE: steampress-test
+          MYSQL_PASSWORD: password
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run Bionic Tests
+      run: swift test --enable-test-discovery --sanitize=thread
+      env:
+        DB_HOSTNAME: mysql
+        DB_PORT: 3306
+        MYSQL_TEST: true
