@@ -70,6 +70,7 @@ struct TestSetup {
         } else {
             app.steampress.fluent.database = .postgres
         }
+        
         try app.boot()
         return app
     }

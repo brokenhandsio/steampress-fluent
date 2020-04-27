@@ -1,12 +1,6 @@
 import SteamPress
 import Fluent
 
-//extension BlogPost: Model {
-//    public typealias ID = Int
-//    public typealias Database = PostgreSQLDatabase
-//    public static var idKey: IDKey { return \.blogID }
-//}
-
 final class FluentBlogPost: Model {
     
     typealias IDValue = Int
